@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthStore } from './store/authStore';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { Home } from './pages/Home';
@@ -7,18 +7,48 @@ import { OfficerDashboard } from './pages/OfficerDashboard';
 import { MpDashboard } from './pages/MpDashboard';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { Profile } from './pages/Profile';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { NotFound } from './pages/NotFound';
 
 function App() {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, checkAuth, isLoading } = useAuthStore();
   const [currentView, setCurrentView] = useState<string>('home');
-  const [showLogin, setShowLogin] = useState<boolean>(true);
+  const [authView, setAuthView] = useState<'login' | 'register'>('login');
 
-  if (!isAuthenticated && showLogin) {
-    return <Login onSuccess={() => {
-      setShowLogin(false);
-      setCurrentView('home');
-    }} />;
+  // Load active session from local storage on boot
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  if (isLoading && !isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gov-slate-50 dark:bg-gov-slate-950 space-y-4">
+        <svg className="animate-spin h-8 w-8 text-gov-brand-blue-500" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        </svg>
+        <span className="text-sm font-semibold text-slate-500">Connecting to secure portal...</span>
+      </div>
+    );
+  }
+
+  // Auth portal fallback
+  if (!isAuthenticated) {
+    if (authView === 'register') {
+      return (
+        <Register 
+          onBack={() => setAuthView('login')} 
+          onSuccess={() => setCurrentView('home')} 
+        />
+      );
+    }
+    return (
+      <Login 
+        onSuccess={() => setCurrentView('home')} 
+        onRegisterLink={() => setAuthView('register')} 
+      />
+    );
   }
 
   // Helper route switch handler
@@ -27,25 +57,30 @@ function App() {
       case 'home':
         return <Home onNavigate={setCurrentView} />;
       case 'citizen':
-        return <CitizenPortal />;
-      case 'officer':
-        return <OfficerDashboard />;
-      case 'mp':
-        return <MpDashboard />;
-      case 'register':
-        return <Register />;
-      case 'settings':
         return (
-          <div className="gov-card max-w-xl mx-auto text-center space-y-2">
-            <h3 className="text-xl font-bold">Portal Settings</h3>
-            <p className="text-slate-500 text-xs">(Settings modifications will be fully supported in subsequent phases).</p>
-          </div>
+          <ProtectedRoute allowedRoles={['Citizen']} onNavigateHome={() => setCurrentView('home')}>
+            <CitizenPortal />
+          </ProtectedRoute>
         );
+      case 'officer':
+        return (
+          <ProtectedRoute allowedRoles={['Officer']} onNavigateHome={() => setCurrentView('home')}>
+            <OfficerDashboard />
+          </ProtectedRoute>
+        );
+      case 'mp':
+        return (
+          <ProtectedRoute allowedRoles={['MP']} onNavigateHome={() => setCurrentView('home')}>
+            <MpDashboard />
+          </ProtectedRoute>
+        );
+      case 'settings':
+        return <Profile />;
       case 'help':
         return (
           <div className="gov-card max-w-xl mx-auto text-center space-y-2">
             <h3 className="text-xl font-bold">YUKTI Help Center</h3>
-            <p className="text-slate-500 text-xs">Access guides and documentation detailing Priority Engine score parameters.</p>
+            <p className="text-slate-550 dark:text-slate-400 text-xs">Access guides and documentation detailing Priority Engine score parameters.</p>
           </div>
         );
       default:

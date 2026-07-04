@@ -89,3 +89,19 @@ docker-compose up --build
 ```
 - API Docs: `http://localhost:8000/docs`
 - Web App: `http://localhost:3000`
+
+---
+
+## Authentication & Authorization System
+
+### Token Lifecycle
+1. **Access Token**: JWT token containing `sub` (email) and `role` claims. Expiry: 60 minutes.
+2. **Refresh Token**: Signed JWT token stored in `localStorage`. Expiry: 7 days.
+3. **Automatic Refresh**: The frontend Axios client automatically intercepting `401 Unauthorized` responses to query `/api/auth/refresh` and silently retrieve a new access token without interrupting active user sessions.
+
+### Role Hierarchy & Access Rules
+The system enforces role checks at both backend router dependency layers and frontend route navigation views:
+- **Citizen**: Can access the Grievance Portal to submit text, audio transcripts, or image reports.
+- **Officer**: Audits pending citizen reports, adjusts category classification, and validates/promotes claims to proposed constituency projects.
+- **MP**: Accesses core decision intelligence metrics, runs portfolio optimizations, and tests scenario simulations.
+
