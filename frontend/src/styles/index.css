@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    @apply bg-gov-slate-50 text-gov-slate-900 transition-colors duration-200;
+  }
+  
+  body.dark {
+    @apply bg-gov-slate-950 text-gov-slate-100;
+  }
+}
+
+@layer components {
+  .gov-btn-primary {
+    @apply px-4 py-2 bg-gov-brand-blue-500 text-white rounded-lg font-medium hover:bg-gov-brand-blue-900/90 active:scale-[0.98] transition-all shadow-sm;
+  }
+  
+  .gov-card {
+    @apply bg-white dark:bg-gov-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-gov-card hover:shadow-gov-card-hover transition-all;
+  }
+}

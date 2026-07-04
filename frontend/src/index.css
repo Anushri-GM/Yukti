@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    @apply bg-slate-950 text-slate-100 overflow-x-hidden;
+  }
+}
+
+/* Glassmorphism utility classes */
+.glass-panel {
+  background: rgba(28, 37, 65, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-2px);
+  background: rgba(28, 37, 65, 0.6);
+  border-color: rgba(197, 168, 128, 0.3);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* Premium gradient elements */
+.text-gradient {
+  background: linear-gradient(135deg, #FFF 30%, #C5A880 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-premium-gradient {
+  background: radial-gradient(circle at top right, rgba(58, 80, 107, 0.15), transparent 60%),
+              radial-gradient(circle at bottom left, rgba(197, 168, 128, 0.08), transparent 50%);
+}
