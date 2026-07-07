@@ -1,28 +1,8 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, JSON
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, JSON, UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.session import Base
-
-class CitizenSubmission(Base):
-    __tablename__ = "citizen_submissions"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    text = Column(Text, nullable=True)
-    voice_url = Column(String, nullable=True)
-    image_url = Column(String, nullable=True)
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
-    ward = Column(String, nullable=True)
-    
-    # Extracted by Gemini
-    category = Column(String, nullable=True)  # Roads, Water, Health, Education, Sanitation, Safety
-    urgency = Column(Integer, default=3)      # 1 to 5 scale
-    summary = Column(Text, nullable=True)
-    affected_infrastructure = Column(String, nullable=True)
-    confidence = Column(Float, default=1.0)
-    
-    status = Column(String, default="pending")  # pending, verified, rejected, converted
-    created_at = Column(DateTime, default=datetime.utcnow)
+from models.suggestion import Suggestion
 
 class DemographicStats(Base):
     __tablename__ = "demographic_stats"
@@ -53,7 +33,7 @@ class DevelopmentProject(Base):
     status = Column(String, default="proposed")  # proposed, approved, active, completed
     justification = Column(Text, nullable=True)
     
-    submission_id = Column(Integer, ForeignKey("citizen_submissions.id"), nullable=True)
-    submission = relationship("CitizenSubmission")
+    submission_id = Column(UUID(as_uuid=True), ForeignKey("suggestions.id"), nullable=True)
+    submission = relationship("Suggestion")
     
     created_at = Column(DateTime, default=datetime.utcnow)

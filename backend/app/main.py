@@ -34,6 +34,8 @@ app.add_middleware(
 def read_root():
     return {"message": "Welcome to YUKTI Decision Support API"}
 
+from uuid import UUID
+
 # --- CITIZEN PORTAL ENDPOINTS ---
 
 @app.post(f"{settings.API_V1_STR}/citizens/submit", response_model=schemas.CitizenSubmissionOut)
@@ -54,17 +56,20 @@ async def submit_grievance(
     analysis = gemini.analyze_citizen_submission(text or "", image_bytes)
     
     # Save submission
-    db_submission = models.CitizenSubmission(
-        text=text,
-        ward=ward or analysis.get("ward") or "Ward C (Subhash Nagar)",
+    db_submission = models.Suggestion(
+        title="Citizen Grievance",
+        description=text or "Grievance submitted via portal.",
+        raw_submission=text or "Grievance submitted via portal.",
+        user_selected_category=analysis.get("category", "Other"),
         latitude=latitude,
         longitude=longitude,
-        category=analysis.get("category", "Other"),
-        urgency=analysis.get("urgency", 3),
-        summary=analysis.get("summary", ""),
-        affected_infrastructure=analysis.get("affected_infrastructure", ""),
-        confidence=analysis.get("confidence", 1.0),
-        status="pending"
+        address=ward or "Ward C (Subhash Nagar)",
+        status="pending",
+        verification_status="Pending",
+        ai_category=analysis.get("category", "Other"),
+        priority_score=float(analysis.get("urgency", 3)) * 20.0,
+        ai_summary=analysis.get("summary", ""),
+        confidence_score=analysis.get("confidence", 1.0)
     )
     db.add(db_submission)
     db.commit()
@@ -73,44 +78,46 @@ async def submit_grievance(
 
 @app.get(f"{settings.API_V1_STR}/citizens/submissions", response_model=List[schemas.CitizenSubmissionOut])
 def get_submissions(db: Session = Depends(get_db)):
-    return db.query(models.CitizenSubmission).order_by(models.CitizenSubmission.created_at.desc()).all()
+    return db.query(models.Suggestion).order_by(models.Suggestion.created_at.desc()).all()
 
 
 # --- OFFICER PORTAL ENDPOINTS ---
 
 @app.put(f"{settings.API_V1_STR}/officers/submissions/{{submission_id}}/verify", response_model=schemas.CitizenSubmissionOut)
 def verify_submission(
-    submission_id: int,
+    submission_id: UUID,
     status: str,  # "verified" or "rejected"
     category: Optional[str] = None,
     urgency: Optional[int] = None,
     convert_to_project: bool = False,
     db: Session = Depends(get_db)
 ):
-    submission = db.query(models.CitizenSubmission).filter(models.CitizenSubmission.id == submission_id).first()
+    submission = db.query(models.Suggestion).filter(models.Suggestion.id == submission_id).first()
     if not submission:
         raise HTTPException(status_code=404, detail="Submission not found")
         
     submission.status = status
     if category:
-        submission.category = category
+        submission.user_selected_category = category
+        submission.ai_category = category
     if urgency is not None:
-        submission.urgency = urgency
+        submission.priority_score = float(urgency) * 20.0
         
     if convert_to_project and status == "verified":
         # Check if project already exists for this submission to avoid duplicates
         existing = db.query(models.DevelopmentProject).filter(models.DevelopmentProject.submission_id == submission_id).first()
         if not existing:
             # Estimate a mock cost (e.g. based on category and urgency)
-            cost_estimate = 1000000.0 * float(submission.urgency)
+            urgency_val = urgency or int((submission.priority_score or 60.0) / 20.0)
+            cost_estimate = 1000000.0 * float(urgency_val)
             new_project = models.DevelopmentProject(
-                title=f"Repair / Reconstruction: {submission.affected_infrastructure or submission.category}",
-                description=f"Action initiated from verified citizen request: {submission.summary}",
+                title=f"Repair / Reconstruction: {submission.address or 'Local Infra'}",
+                description=f"Action initiated from verified citizen request: {submission.ai_summary}",
                 category=submission.category or "General",
                 cost=cost_estimate,
-                affected_population=1500 * submission.urgency,
-                ward=submission.ward or "Ward B (Ambedkar Nagar)",
-                urgency_score=submission.urgency,
+                affected_population=1500 * urgency_val,
+                ward=submission.address or "Ward B (Ambedkar Nagar)",
+                urgency_score=urgency_val,
                 submission_id=submission.id,
                 status="proposed"
             )

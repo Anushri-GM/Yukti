@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.db.session import engine, Base, SessionLocal
-from app.db.models import DemographicStats, DevelopmentProject, CitizenSubmission
+from app.db.models import DemographicStats, DevelopmentProject
+from app.db.models import Suggestion
 
 def seed_db():
     Base.metadata.create_all(bind=engine)
@@ -11,7 +12,7 @@ def seed_db():
         db.close()
         return
         
-    print("Seeding database with MVP dummy data...")
+    print("Seeding database with YUKTI schema data...")
     
     # 1. Seed Wards Demographics
     wards = [
@@ -58,35 +59,15 @@ def seed_db():
             vulnerability_index=0.20,
             water_access_pct=95.0,
             road_connectivity_pct=90.0,
-            health_center_distance_km=1.0
+            health_center_distance_km=0.8
         ),
     ]
     db.add_all(wards)
+    db.commit()
     
     # 2. Seed Development Projects
     projects = [
         DevelopmentProject(
-            title="Clean Water Pipeline Hookup",
-            description="Install direct piped water supply pipelines to underserved households in Nehru Basti to reduce waterborne diseases.",
-            category="Water",
-            cost=2500000.0,  # 25 Lakhs
-            affected_population=8000,
-            ward="Ward D (Nehru Basti)",
-            urgency_score=5,
-            status="proposed"
-        ),
-        DevelopmentProject(
-            title="Ward B Primary Health Clinic Setup",
-            description="Construct a primary healthcare sub-center to serve local residents who currently travel over 6km for primary care.",
-            category="Healthcare",
-            cost=4500000.0,  # 45 Lakhs
-            affected_population=12000,
-            ward="Ward B (Ambedkar Nagar)",
-            urgency_score=4,
-            status="proposed"
-        ),
-        DevelopmentProject(
-            title="Pothole Repair & Main Road Asphalt Sheet",
             description="Resurface the main connector road from Ward C to Ward A, currently heavily potholed and accident-prone.",
             category="Roads",
             cost=1500000.0,  # 15 Lakhs
@@ -128,27 +109,33 @@ def seed_db():
     ]
     db.add_all(projects)
     
-    # 3. Seed Citizen Submissions
+    # 3. Seed Citizen Submissions (using Suggestion model)
     submissions = [
-        CitizenSubmission(
-            text="The main drinking water tap in Nehru Basti has been contaminated with sewer leakage for the past 3 days. Many children are falling sick.",
-            category="Water",
-            urgency=5,
-            summary="Contaminated water supply in Nehru Basti causing illness.",
-            affected_infrastructure="Public Drinking Water Tap",
-            confidence=0.98,
+        Suggestion(
+            title="Water contamination in Nehru Basti",
+            description="The main drinking water tap in Nehru Basti has been contaminated with sewer leakage for the past 3 days. Many children are falling sick.",
+            raw_submission="The main drinking water tap in Nehru Basti has been contaminated with sewer leakage for the past 3 days. Many children are falling sick.",
+            user_selected_category="Water",
+            address="Ward D (Nehru Basti)",
             status="verified",
-            ward="Ward D (Nehru Basti)"
+            verification_status="Verified",
+            ai_category="Water",
+            priority_score=100.0,
+            ai_summary="Contaminated water supply in Nehru Basti causing illness.",
+            confidence_score=0.98
         ),
-        CitizenSubmission(
-            text="Potholes on Subhash Nagar main road are massive. Yesterday a scooterist fell down and fractured their hand. Needs urgent patching.",
-            category="Roads",
-            urgency=4,
-            summary="Dangerous potholes on Subhash Nagar road causing accidents.",
-            affected_infrastructure="Subhash Nagar Connector Road",
-            confidence=0.96,
+        Suggestion(
+            title="Dangerous Potholes on Subhash Nagar main road",
+            description="Potholes on Subhash Nagar main road are massive. Yesterday a scooterist fell down and fractured their hand. Needs urgent patching.",
+            raw_submission="Potholes on Subhash Nagar main road are massive. Yesterday a scooterist fell down and fractured their hand. Needs urgent patching.",
+            user_selected_category="Roads",
+            address="Ward C (Subhash Nagar)",
             status="verified",
-            ward="Ward C (Subhash Nagar)"
+            verification_status="Verified",
+            ai_category="Roads",
+            priority_score=80.0,
+            ai_summary="Dangerous potholes on Subhash Nagar road causing accidents.",
+            confidence_score=0.96
         )
     ]
     db.add_all(submissions)

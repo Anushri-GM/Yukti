@@ -9,6 +9,8 @@ from schemas.suggestion import SuggestionCreate, SuggestionUpdate, StatusUpdateR
 from repositories.suggestion import suggestion_repository, suggestion_image_repository, status_history_repository
 from core.logging import logger
 
+from services import ai_service
+
 def create_suggestion(db: Session, citizen_id: UUID, suggestion_in: SuggestionCreate) -> Suggestion:
     """
     Creates a new suggestion, logs the initial status history, and processes attached images.
@@ -22,6 +24,18 @@ def create_suggestion(db: Session, citizen_id: UUID, suggestion_in: SuggestionCr
     # Defaults
     suggestion_data["status"] = SuggestionStatus.SUBMITTED.value
     suggestion_data["verification_status"] = VerificationStatus.PENDING.value
+    
+    # Run AI auto-analysis
+    try:
+        analysis = ai_service.analyze_full_request(db, suggestion_in.description)
+        suggestion_data["ai_category"] = analysis.category
+        suggestion_data["priority_score"] = analysis.priority_score
+        suggestion_data["confidence_score"] = analysis.confidence_score
+        
+        summary = ai_service.summarize_request(suggestion_in.description)
+        suggestion_data["ai_summary"] = summary
+    except Exception as e:
+        logger.error(f"Failed to auto-analyze suggestion: {e}")
     
     # Save suggestion
     suggestion = suggestion_repository.create(db, suggestion_data)

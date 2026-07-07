@@ -22,7 +22,7 @@ class Suggestion(Base):
     __tablename__ = "suggestions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    citizen_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    citizen_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     title = Column(String(100), nullable=False)
     description = Column(String, nullable=False)
     raw_submission = Column(String, nullable=False)
@@ -51,6 +51,32 @@ class Suggestion(Base):
     citizen = relationship("User", back_populates="suggestions")
     images = relationship("SuggestionImage", back_populates="suggestion", cascade="all, delete-orphan")
     status_history = relationship("SuggestionStatusHistory", back_populates="suggestion", cascade="all, delete-orphan")
+
+    @property
+    def text(self):
+        return self.description
+
+    @property
+    def category(self):
+        return self.ai_category or self.user_selected_category
+
+    @property
+    def urgency(self):
+        if self.priority_score is not None:
+            return max(1, min(5, int(self.priority_score / 20.0)))
+        return 3
+
+    @property
+    def summary(self):
+        return self.ai_summary
+
+    @property
+    def affected_infrastructure(self):
+        return self.address or "Local Area"
+
+    @property
+    def confidence(self):
+        return self.confidence_score or 1.0
 
 
 class SuggestionImage(Base):

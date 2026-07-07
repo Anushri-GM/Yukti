@@ -10,8 +10,10 @@ class CitizenSubmissionCreate(BaseModel):
     longitude: Optional[float] = None
     ward: Optional[str] = None
 
+from uuid import UUID
+
 class CitizenSubmissionOut(BaseModel):
-    id: int
+    id: UUID
     text: Optional[str]
     voice_url: Optional[str]
     image_url: Optional[str]
