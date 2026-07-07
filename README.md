@@ -105,3 +105,43 @@ The system enforces role checks at both backend router dependency layers and fro
 - **Officer**: Audits pending citizen reports, adjusts category classification, and validates/promotes claims to proposed constituency projects.
 - **MP**: Accesses core decision intelligence metrics, runs portfolio optimizations, and tests scenario simulations.
 
+---
+
+## Citizen Submission Module (Phase 3A)
+
+The **Citizen Submission** module provides the foundation for citizens to report local constituency issues, upload images, track status, and view historical status updates.
+
+### 1. Database Schema & Models
+- **Suggestions (`suggestions`)**: Stored with a UUID primary key, links to `users` via `citizen_id`. Includes details like title, description, raw submission, selected category, optional GPS coordinates, and default status/verification flags. Features pre-allocated fields (`ai_summary`, `ai_category`, `priority_score`, etc.) for future AI processes.
+- **Suggestion Images (`suggestion_images`)**: Connects to `suggestions` and lists attached reference image URLs.
+- **Suggestion Status History (`suggestion_status_histories`)**: Tracks status transitions, transitions comments/remarks, and the user who executed the state change.
+
+### 2. Repositories & Services
+- **`SuggestionRepository`**: Manages queries with support for pagination (limit 20-100), full-text search (matching title/description), sorting (newest, oldest, title), and field filtering (status, category, date bounds).
+- **`SuggestionService`**: Implements core business logic:
+  - Validates ownership (Citizens can access/edit/delete only their own suggestions).
+  - Handles initial logging and status transition history logs.
+  - Controls status adjustments and automatic synchronizations to verification statuses.
+
+### 3. REST API Endpoints
+All endpoints require JWT authorization and are restricted to users with the **Citizen** role. Users can only access/mutate their own suggestions:
+- `POST /api/suggestions`: Creates a new suggestion (validates minimum description length 10, maximum title length 100, valid coordinates, and required category).
+- `GET /api/suggestions`: Returns a paginated, filtered list of the active citizen's own suggestions.
+- `GET /api/suggestions/{id}`: Retrieves details for a specific suggestion by ID.
+- `PUT /api/suggestions/{id}`: Modifies title, description, category, coordinates, or images.
+- `DELETE /api/suggestions/{id}`: Deletes the suggestion.
+- `PATCH /api/suggestions/{id}/status`: Alters the status (Submitted, Under Review, Verified, Planning, Approved, Rejected) and logs remarks.
+
+### 4. Running Migrations & Unit Tests
+To apply the database migrations:
+```bash
+cd backend
+alembic upgrade head
+```
+
+To run the unit tests:
+```bash
+pytest tests/test_suggestions.py
+```
+
+

@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy.orm import relationship
 from datetime import datetime
 from database.session import Base
 
@@ -18,3 +19,6 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
+
+    suggestions = relationship("Suggestion", back_populates="citizen", cascade="all, delete-orphan")
+

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.logging import logger
 from database.session import check_db_connection
-from api.routes import health, auth, users
+from api.routes import health, auth, users, suggestions
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -31,3 +31,5 @@ def startup_event():
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(suggestions.router)
+
