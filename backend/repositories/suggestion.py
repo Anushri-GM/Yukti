@@ -1,12 +1,13 @@
 from typing import List, Optional
 from datetime import datetime
+from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from models.suggestion import Suggestion, SuggestionImage, SuggestionStatusHistory
 from repositories.base import BaseRepository
 
 class SuggestionRepository(BaseRepository[Suggestion]):
-    def get_by_citizen(self, db: Session, citizen_id: int, skip: int = 0, limit: int = 20) -> List[Suggestion]:
+    def get_by_citizen(self, db: Session, citizen_id: UUID, skip: int = 0, limit: int = 20) -> List[Suggestion]:
         """
         Retrieves suggestions created by a specific citizen.
         """
@@ -16,7 +17,7 @@ class SuggestionRepository(BaseRepository[Suggestion]):
         self,
         db: Session,
         *,
-        citizen_id: Optional[int] = None,
+        citizen_id: Optional[UUID] = None,
         category: Optional[str] = None,
         status: Optional[str] = None,
         date_from: Optional[datetime] = None,

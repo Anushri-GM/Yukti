@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from uuid import UUID
 from database.session import get_db
 from schemas.suggestion import (
     SuggestionCreate,

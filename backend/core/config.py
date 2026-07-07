@@ -1,11 +1,10 @@
 import os
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
-
-# Load environment variables from .env file
 from pathlib import Path
 
+# Load environment variables from .env file
 # Try current working directory, backend folder, and the directory of this file
 env_file_paths = [
     Path(os.getcwd()) / ".env",
@@ -42,8 +41,7 @@ class Settings(BaseSettings):
     MAX_IMAGE_SIZE: int = int(os.getenv("MAX_IMAGE_SIZE", 5 * 1024 * 1024))
     MAX_AUDIO_SIZE: int = int(os.getenv("MAX_AUDIO_SIZE", 10 * 1024 * 1024))
 
-    class Config:
-        case_sensitive = True
+    model_config = SettingsConfigDict(case_sensitive=True)
 
 settings = Settings()
 

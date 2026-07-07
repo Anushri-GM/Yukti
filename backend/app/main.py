@@ -80,7 +80,7 @@ def get_submissions(db: Session = Depends(get_db)):
 
 @app.put(f"{settings.API_V1_STR}/officers/submissions/{{submission_id}}/verify", response_model=schemas.CitizenSubmissionOut)
 def verify_submission(
-    submission_id: int,
+    submission_id: UUID,
     status: str,  # "verified" or "rejected"
     category: Optional[str] = None,
     urgency: Optional[int] = None,

@@ -22,7 +22,7 @@ class Suggestion(Base):
     __tablename__ = "suggestions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    citizen_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    citizen_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String(100), nullable=False)
     description = Column(String, nullable=False)
     raw_submission = Column(String, nullable=False)
@@ -72,7 +72,7 @@ class SuggestionStatusHistory(Base):
     suggestion_id = Column(UUID(as_uuid=True), ForeignKey("suggestions.id", ondelete="CASCADE"), nullable=False)
     status = Column(String, nullable=False)
     remarks = Column(String, nullable=True)
-    changed_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    changed_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships

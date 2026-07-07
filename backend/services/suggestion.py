@@ -1,5 +1,6 @@
 from typing import List, Optional, Tuple
 from datetime import datetime
+from uuid import UUID
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from models.user import User
@@ -8,7 +9,7 @@ from schemas.suggestion import SuggestionCreate, SuggestionUpdate, StatusUpdateR
 from repositories.suggestion import suggestion_repository, suggestion_image_repository, status_history_repository
 from core.logging import logger
 
-def create_suggestion(db: Session, citizen_id: int, suggestion_in: SuggestionCreate) -> Suggestion:
+def create_suggestion(db: Session, citizen_id: UUID, suggestion_in: SuggestionCreate) -> Suggestion:
     """
     Creates a new suggestion, logs the initial status history, and processes attached images.
     """

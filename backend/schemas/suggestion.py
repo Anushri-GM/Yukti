@@ -1,32 +1,31 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from datetime import datetime
 from typing import Optional, List
+from uuid import UUID
 import uuid
 from models.suggestion import SuggestionStatus, VerificationStatus
 
 class SuggestionImageResponse(BaseModel):
-    id: uuid.UUID
-    suggestion_id: uuid.UUID
+    id: UUID
+    suggestion_id: UUID
     image_url: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class StatusHistoryResponse(BaseModel):
-    id: uuid.UUID
-    suggestion_id: uuid.UUID
+    id: UUID
+    suggestion_id: UUID
     status: str
     remarks: Optional[str] = None
-    changed_by: int
+    changed_by: UUID
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class SuggestionResponse(BaseModel):
-    id: uuid.UUID
-    citizen_id: int
+    id: UUID
+    citizen_id: UUID
     title: str
     description: str
     raw_submission: str
@@ -46,14 +45,13 @@ class SuggestionResponse(BaseModel):
     ai_category: Optional[str] = None
     priority_score: Optional[float] = None
     confidence_score: Optional[float] = None
-    duplicate_group_id: Optional[uuid.UUID] = None
+    duplicate_group_id: Optional[UUID] = None
     
     # Relationships
     images: List[SuggestionImageResponse] = []
     status_history: List[StatusHistoryResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class SuggestionCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=100, description="Title of the suggestion, max 100 characters")

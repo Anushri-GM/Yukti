@@ -23,7 +23,7 @@ def upgrade() -> None:
     op.create_table(
         'suggestions',
         sa.Column('id', sa.UUID(), nullable=False),
-        sa.Column('citizen_id', sa.Integer(), nullable=False),
+        sa.Column('citizen_id', sa.UUID(), nullable=False),
         sa.Column('title', sa.String(length=100), nullable=False),
         sa.Column('description', sa.String(), nullable=False),
         sa.Column('raw_submission', sa.String(), nullable=False),
@@ -64,7 +64,7 @@ def upgrade() -> None:
         sa.Column('suggestion_id', sa.UUID(), nullable=False),
         sa.Column('status', sa.String(), nullable=False),
         sa.Column('remarks', sa.String(), nullable=True),
-        sa.Column('changed_by', sa.Integer(), nullable=False),
+        sa.Column('changed_by', sa.UUID(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(['changed_by'], ['users.id'], ondelete='CASCADE'),
         sa.ForeignKeyConstraint(['suggestion_id'], ['suggestions.id'], ondelete='CASCADE'),

@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Try current working directory, backend folder, and the directory of this file
 env_file_paths = [
@@ -28,7 +28,6 @@ class Settings(BaseSettings):
     # Gemini API Key
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     
-    class Config:
-        case_sensitive = True
+    model_config = SettingsConfigDict(case_sensitive=True)
 
 settings = Settings()

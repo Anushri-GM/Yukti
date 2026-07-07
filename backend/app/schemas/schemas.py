@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
@@ -26,8 +26,7 @@ class CitizenSubmissionOut(BaseModel):
     status: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class DemographicStatsOut(BaseModel):
     id: int
@@ -39,8 +38,7 @@ class DemographicStatsOut(BaseModel):
     road_connectivity_pct: float
     health_center_distance_km: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class DevelopmentProjectCreate(BaseModel):
     title: str
@@ -67,8 +65,7 @@ class DevelopmentProjectOut(BaseModel):
     submission_id: Optional[int]
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class WeightWeights(BaseModel):
     urgency: float = 0.3
