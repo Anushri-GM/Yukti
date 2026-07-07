@@ -13,10 +13,10 @@ env_file_paths = [
 
 for path in env_file_paths:
     if path.exists():
-        load_dotenv(dotenv_path=path)
+        load_dotenv(dotenv_path=path, override=True)
         break
 else:
-    load_dotenv()
+    load_dotenv(override=True)
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "YUKTI"
