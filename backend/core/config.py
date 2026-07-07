@@ -4,7 +4,22 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 
 # Load environment variables from .env file
-load_dotenv()
+from pathlib import Path
+
+# Try current working directory, backend folder, and the directory of this file
+env_file_paths = [
+    Path(os.getcwd()) / ".env",
+    Path(os.getcwd()) / "backend" / ".env",
+    Path(__file__).resolve().parent.parent / ".env",
+]
+
+for path in env_file_paths:
+    if path.exists():
+        load_dotenv(dotenv_path=path)
+        break
+else:
+    load_dotenv()
+
 
 class Settings(BaseSettings):
 
