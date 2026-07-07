@@ -1,8 +1,13 @@
 import os
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 from typing import Optional
 
+# Load environment variables from .env file
+load_dotenv()
+
 class Settings(BaseSettings):
+
     PROJECT_NAME: str = "YUKTI"
     API_V1_STR: str = "/api/v1"
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://postgres:postgrespassword@localhost:5432/yukti")
