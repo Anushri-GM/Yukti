@@ -27,6 +27,20 @@ def startup_event():
     logger.info("Initializing YUKTI backend...")
     check_db_connection()
     
+    # Programmatic check and install of google-genai
+    import subprocess
+    import sys
+    try:
+        from google import genai
+        logger.info("google-genai package is already installed.")
+    except ImportError:
+        logger.info("google-genai package not found. Installing via pip...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "google-genai"])
+            logger.info("google-genai package installed successfully.")
+        except Exception as e:
+            logger.error(f"Failed to install google-genai programmatically: {e}")
+
     # Auto-create all tables in PostgreSQL
     from database.session import engine, Base
     from models.user import User

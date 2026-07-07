@@ -1,10 +1,10 @@
 import json
 import logging
 import time
+import traceback
 from typing import Optional, List, Dict, Any
 from uuid import UUID
-from datetime import datetime
-import google.generativeai as genai
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from core.config import settings
 from models.suggestion import Suggestion
@@ -18,34 +18,76 @@ from schemas.ai import (
 
 logger = logging.getLogger("yukti.ai_service")
 
-# Simple in-memory cache: key -> (timestamp, response_dict)
+# Simple in-memory cache: key -> response_dict
 AI_CACHE: Dict[str, Dict[str, Any]] = {}
 
-# Set up Gemini
-if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "MOCK_KEY":
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-    gemini_available = True
-else:
-    logger.warning("GEMINI_API_KEY is not configured or set to MOCK_KEY. Falling back to rule-based engine.")
-    gemini_available = False
+client = None
 
 def get_cache_key(prefix: str, text: str, extra: str = "") -> str:
-    """Generates a stable cache key based on prompt parameters."""
     return f"{prefix}:{hash(text)}:{extra}"
 
 def check_cache(key: str) -> Optional[Any]:
-    """Retrieves cached response if present."""
     if key in AI_CACHE:
         logger.info(f"AI Cache Hit: {key}")
         return AI_CACHE[key]
     return None
 
 def write_cache(key: str, val: Any) -> None:
-    """Caches response value."""
     AI_CACHE[key] = val
 
 # ========================================================
-# RULE-BASED FALLBACK IMPLEMENTATIONS
+# LAZY CLIENT RESOLUTION & EXCEPTION LOGGING
+# ========================================================
+
+def get_gemini_client():
+    """Lazily imports and instantiates the Gemini client to support dynamic runtime installation."""
+    global client
+    if client is not None:
+        return client
+
+    try:
+        from google import genai
+        # If imported, initialize client explicitly using AI Studio key
+        if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "MOCK_KEY":
+            try:
+                client = genai.Client(api_key=settings.GEMINI_API_KEY)
+                logger.info("Google GenAI client initialized dynamically with API key.")
+                return client
+            except Exception as e:
+                logger.error(f"Failed to initialize Google GenAI client: {e}")
+                return None
+    except ImportError:
+        pass
+    return None
+
+def log_gemini_error(action: str, e: Exception):
+    """Formats and logs detailed Gemini API exception details."""
+    err_type = type(e).__name__
+    err_msg = str(e)
+    
+    # Try to extract HTTP status and error details from the Google GenAI SDK exception
+    status_code = getattr(e, 'code', None) or getattr(e, 'status_code', None)
+    response_body = getattr(e, 'message', None)
+    
+    log_msg = (
+        f"Gemini request failed in {action} | "
+        f"Exception Type: {err_type} | "
+        f"Message: {err_msg}"
+    )
+    if status_code is not None:
+        log_msg += f" | HTTP Status: {status_code}"
+    if response_body is not None:
+        log_msg += f" | Response Body: {response_body}"
+        
+    logger.error(log_msg)
+    
+    # Check if debug mode is active (using getattr to prevent configuration mismatches)
+    is_debug = getattr(settings, 'DEBUG', True)
+    if is_debug:
+        logger.debug(f"Gemini stack trace for {action}:\n{traceback.format_exc()}")
+
+# ========================================================
+# RULE-BASED FALLBACKS
 # ========================================================
 
 def _fallback_category(text: str) -> str:
@@ -113,17 +155,12 @@ def _fallback_urgency(text: str) -> int:
     return 2
 
 def _fallback_priority(text: str, category: str, urgency: int) -> float:
-    # Severity rules
-    score = urgency * 15  # Up to 75
+    score = urgency * 15
     t = text.lower()
-    
-    # Population impact
     if any(k in t for k in ["many", "all", "community", "village", "town", "everyone"]):
         score += 15
     else:
         score += 5
-        
-    # Infrastructure type multiplier
     infra_multipliers = {
         "Healthcare": 10,
         "Water": 10,
@@ -144,149 +181,190 @@ def _fallback_explain(category: str, department: str, priority_level: str, schem
     )
 
 # ========================================================
-# EXPOSED SERVICE METHODS WITH GEMINI & FALLBACK
+# Pydantic Schemas for Gemini Structured JSON Outputs
+# ========================================================
+
+class GeminiCategoryOutput(BaseModel):
+    category: str
+    subcategory: str
+
+class GeminiPriorityOutput(BaseModel):
+    urgency: int
+    priority_score: float
+
+class GeminiSchemeOutput(BaseModel):
+    recommended_scheme: str
+    reason: str
+    confidence: float
+
+class GeminiDuplicateOutput(BaseModel):
+    whether_duplicate: bool
+    similarity_score: float
+    original_request_ids: List[str]
+    recommend_merge: bool
+
+# ========================================================
+# SERVICE METHODS
 # ========================================================
 
 def categorize_request(text: str) -> Dict[str, str]:
-    """Determines category and subcategory of a request."""
     cache_key = get_cache_key("categorize", text)
     cached = check_cache(cache_key)
     if cached:
         return cached
 
-    if not gemini_available:
+    ai_client = get_gemini_client()
+    if not ai_client:
+        logger.info("Gemini client unavailable. Fallback activated for categorize_request.")
         cat = _fallback_category(text)
         sub = _fallback_subcategory(text, cat)
         res = {"category": cat, "subcategory": sub}
         write_cache(cache_key, res)
         return res
 
+    logger.info("Gemini request started: categorize_request")
     try:
+        from google.genai import types
         t0 = time.time()
-        model = genai.GenerativeModel('gemini-2.5-flash')
         prompt = (
-            f"Classify the following citizen grievance text into a category and subcategory.\n"
+            f"Classify this citizen grievance into a category and subcategory.\n"
             f"Allowed categories: Roads, Water, Sanitation, Healthcare, Education, Safety, Other.\n"
-            f"Output as structured JSON with keys: category, subcategory.\n\n"
             f"Text: {text}"
         )
-        response = model.generate_content(
-            prompt,
-            generation_config=genai.GenerationConfig(response_mime_type="application/json")
+        response = ai_client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=GeminiCategoryOutput
+            )
         )
-        logger.info(f"Gemini latency (categorize): {time.time() - t0:.2f}s")
+        logger.info(f"Gemini request succeeded: categorize_request in {time.time() - t0:.2f}s")
         data = json.loads(response.text)
         write_cache(cache_key, data)
         return data
     except Exception as e:
-        logger.error(f"Gemini error in categorize_request: {e}. Switching to rule fallback.")
+        log_gemini_error("categorize_request", e)
+        logger.info("Fallback activated for categorize_request due to error.")
         cat = _fallback_category(text)
         sub = _fallback_subcategory(text, cat)
         return {"category": cat, "subcategory": sub}
 
 def summarize_request(text: str) -> str:
-    """Summarizes a citizen request in under 50 words."""
     cache_key = get_cache_key("summarize", text)
     cached = check_cache(cache_key)
     if cached:
         return cached["summary"]
 
-    if not gemini_available:
+    ai_client = get_gemini_client()
+    if not ai_client:
+        logger.info("Gemini client unavailable. Fallback activated for summarize_request.")
         summary = text[:80] + "..." if len(text) > 80 else text
         write_cache(cache_key, {"summary": summary})
         return summary
 
+    logger.info("Gemini request started: summarize_request")
     try:
         t0 = time.time()
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        prompt = (
-            f"Summarize the following infrastructure grievance concisely in one or two clear sentences (under 50 words).\n\n"
-            f"Text: {text}"
+        prompt = f"Summarize the following grievance in one short sentence (under 50 words):\n\nText: {text}"
+        response = ai_client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt
         )
-        response = model.generate_content(prompt)
-        logger.info(f"Gemini latency (summarize): {time.time() - t0:.2f}s")
+        logger.info(f"Gemini request succeeded: summarize_request in {time.time() - t0:.2f}s")
         summary = response.text.strip()
         write_cache(cache_key, {"summary": summary})
         return summary
     except Exception as e:
-        logger.error(f"Gemini error in summarize_request: {e}")
+        log_gemini_error("summarize_request", e)
+        logger.info("Fallback activated for summarize_request due to error.")
         return text[:80] + "..." if len(text) > 80 else text
 
 def estimate_priority(text: str, category: str) -> Dict[str, Any]:
-    """Computes urgency (1-5) and priority score (0-100)."""
     cache_key = get_cache_key("priority", text, category)
     cached = check_cache(cache_key)
     if cached:
         return cached
 
-    if not gemini_available:
+    ai_client = get_gemini_client()
+    if not ai_client:
+        logger.info("Gemini client unavailable. Fallback activated for estimate_priority.")
         urgency = _fallback_urgency(text)
         score = _fallback_priority(text, category, urgency)
         res = {"urgency": urgency, "priority_score": score}
         write_cache(cache_key, res)
         return res
 
+    logger.info("Gemini request started: estimate_priority")
     try:
+        from google.genai import types
         t0 = time.time()
-        model = genai.GenerativeModel('gemini-2.5-flash')
         prompt = (
-            f"Estimate the urgency (1 to 5) and developmental priority score (0 to 100) for this complaint.\n"
-            f"Priority should consider severity, safety, population affected, and infrastructure type.\n"
-            f"Output as structured JSON with keys: urgency, priority_score.\n\n"
+            f"Estimate the urgency rating (1 to 5) and developmental priority score (0.0 to 100.0) for this issue.\n"
             f"Category: {category}\n"
             f"Text: {text}"
         )
-        response = model.generate_content(
-            prompt,
-            generation_config=genai.GenerationConfig(response_mime_type="application/json")
+        response = ai_client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=GeminiPriorityOutput
+            )
         )
-        logger.info(f"Gemini latency (priority): {time.time() - t0:.2f}s")
+        logger.info(f"Gemini request succeeded: estimate_priority in {time.time() - t0:.2f}s")
         data = json.loads(response.text)
         write_cache(cache_key, data)
         return data
     except Exception as e:
-        logger.error(f"Gemini error in estimate_priority: {e}. Switching to rule fallback.")
+        log_gemini_error("estimate_priority", e)
+        logger.info("Fallback activated for estimate_priority due to error.")
         urgency = _fallback_urgency(text)
         score = _fallback_priority(text, category, urgency)
         return {"urgency": urgency, "priority_score": score}
 
 def recommend_department(category: str) -> str:
-    """Recommends department based on category."""
     return _fallback_department(category)
 
 def recommend_scheme(text: str, category: str) -> Dict[str, Any]:
-    """Suggests government scheme and confidence score."""
     cache_key = get_cache_key("scheme", text, category)
     cached = check_cache(cache_key)
     if cached:
         return cached
 
-    if not gemini_available:
+    ai_client = get_gemini_client()
+    if not ai_client:
+        logger.info("Gemini client unavailable. Fallback activated for recommend_scheme.")
         scheme = _fallback_scheme(category)
         res = {"recommended_scheme": scheme, "confidence": 0.85, "reason": "Default department rule allocation."}
         write_cache(cache_key, res)
         return res
 
+    logger.info("Gemini request started: recommend_scheme")
     try:
+        from google.genai import types
         t0 = time.time()
-        model = genai.GenerativeModel('gemini-2.5-flash')
         prompt = (
-            f"Suggest a standard Indian Government Welfare or Development scheme (e.g. Jal Jeevan Mission, PMGSY, Swachh Bharat) "
-            f"that is best suited to address this citizen complaint. Provide the scheme name, reason, and confidence (0.0 to 1.0).\n"
-            f"Output as structured JSON with keys: recommended_scheme, reason, confidence.\n\n"
+            f"Recommend a standard Indian government scheme or development fund (e.g. PMGSY, Jal Jeevan Mission) "
+            f"for this issue. Give the scheme name, reason, and confidence (0.0 to 1.0).\n"
             f"Category: {category}\n"
             f"Text: {text}"
         )
-        response = model.generate_content(
-            prompt,
-            generation_config=genai.GenerationConfig(response_mime_type="application/json")
+        response = ai_client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=GeminiSchemeOutput
+            )
         )
-        logger.info(f"Gemini latency (scheme): {time.time() - t0:.2f}s")
+        logger.info(f"Gemini request succeeded: recommend_scheme in {time.time() - t0:.2f}s")
         data = json.loads(response.text)
         write_cache(cache_key, data)
         return data
     except Exception as e:
-        logger.error(f"Gemini error in recommend_scheme: {e}. Switching to rule fallback.")
+        log_gemini_error("recommend_scheme", e)
+        logger.info("Fallback activated for recommend_scheme due to error.")
         return {
             "recommended_scheme": _fallback_scheme(category),
             "confidence": 0.70,
@@ -294,16 +372,9 @@ def recommend_scheme(text: str, category: str) -> Dict[str, Any]:
         }
 
 def generate_reasoning(category: str, department: str, priority_level: str, scheme: str) -> str:
-    """Generates explainability text suitable for officers and MPs."""
     return _fallback_explain(category, department, priority_level, scheme)
 
-# ========================================================
-# SEMANTIC DUPLICATE DETECTION
-# ========================================================
-
 def detect_duplicates(db: Session, text: str, category: str) -> Dict[str, Any]:
-    """Compares current text against previous complaints to detect semantic duplicates."""
-    # Fetch latest 20 suggestions in the same category
     existing = db.query(Suggestion).filter(
         Suggestion.user_selected_category == category
     ).order_by(Suggestion.created_at.desc()).limit(20).all()
@@ -315,8 +386,9 @@ def detect_duplicates(db: Session, text: str, category: str) -> Dict[str, Any]:
             "original_request_ids": []
         }
 
-    # If Gemini is not available, do a simple keyword matching fallback
-    if not gemini_available:
+    ai_client = get_gemini_client()
+    if not ai_client:
+        logger.info("Gemini client unavailable. Fallback activated for duplicate detection.")
         words = set(text.lower().split())
         for old in existing:
             old_words = set(old.description.lower().split())
@@ -337,31 +409,30 @@ def detect_duplicates(db: Session, text: str, category: str) -> Dict[str, Any]:
             "original_request_ids": []
         }
 
+    logger.info("Gemini request started: duplicate_detection")
     try:
-        # Ask Gemini to run semantic match
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        from google.genai import types
         records_str = ""
         for item in existing:
-            records_str += f"- ID: {item.id} | Title: {item.title} | Description: {item.description[:120]}\n"
+            records_str += f"- ID: {item.id} | Description: {item.description[:120]}\n"
 
         prompt = (
-            f"You are YUKTI's Duplicate Detection Engine.\n"
-            f"Analyze if the new citizen complaint description matches any of the existing reports.\n"
-            f"Determine if they report the exact same issue/hazard at the same proximity location.\n\n"
+            f"Analyze if the new citizen complaint matches any of these existing reports.\n"
             f"New complaint:\n\"{text}\"\n\n"
-            f"Existing complaints:\n{records_str}\n"
-            f"Output as structured JSON with keys: whether_duplicate (boolean), similarity_score (float 0.0 to 1.0), "
-            f"original_request_ids (array of matching UUID strings), recommend_merge (boolean)."
+            f"Existing complaints:\n{records_str}"
         )
         t0 = time.time()
-        response = model.generate_content(
-            prompt,
-            generation_config=genai.GenerationConfig(response_mime_type="application/json")
+        response = ai_client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=GeminiDuplicateOutput
+            )
         )
-        logger.info(f"Gemini latency (duplicates): {time.time() - t0:.2f}s")
+        logger.info(f"Gemini request succeeded: duplicate_detection in {time.time() - t0:.2f}s")
         data = json.loads(response.text)
         
-        # Convert UUID strings back to UUID objects
         ids = []
         for id_str in data.get("original_request_ids", []):
             try:
@@ -371,40 +442,28 @@ def detect_duplicates(db: Session, text: str, category: str) -> Dict[str, Any]:
         data["original_request_ids"] = ids
         return data
     except Exception as e:
-        logger.error(f"Gemini error in duplicate detection: {e}")
+        log_gemini_error("duplicate_detection", e)
+        logger.info("Fallback activated for duplicate_detection due to error.")
         return {
             "whether_duplicate": False,
             "similarity_score": 0.0,
             "original_request_ids": []
         }
 
-# ========================================================
-# COMBINED ANALYZE ENDPOINT PIPELINE
-# ========================================================
-
 def analyze_full_request(db: Session, text: str) -> AIAnalysisResponse:
-    """Runs the complete AI analysis pipeline for a request."""
-    # 1. Categorize
     cat_data = categorize_request(text)
     category = cat_data.get("category", "Other")
     subcategory = cat_data.get("subcategory", "General")
 
-    # 2. Priority
     pri_data = estimate_priority(text, category)
     urgency = pri_data.get("urgency", 3)
     priority_score = pri_data.get("priority_score", 50.0)
 
-    # 3. Department
     department = recommend_department(category)
-
-    # 4. Duplicate Check
     dup_data = detect_duplicates(db, text, category)
 
-    # 5. Incomplete detection rule fallback
     whether_incomplete = len(text.strip().split()) < 6
-
-    # 6. Confidence estimate
-    confidence_score = 0.95 if gemini_available else 0.75
+    confidence_score = 0.95 if get_gemini_client() is not None else 0.75
 
     return AIAnalysisResponse(
         category=category,
