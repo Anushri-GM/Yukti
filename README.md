@@ -144,4 +144,41 @@ To run the unit tests:
 pytest tests/test_suggestions.py
 ```
 
+---
+
+## File Upload & Audio Transcription Pipeline (Phase 3B)
+
+The **File Upload & Transcription** module enables Citizens to upload images (as suggestions reference attachments) and audio files (which are automatically transcribed to text).
+
+### 1. Upload Pipeline Architecture
+The upload flow follows a strictly authenticated backend routing model:
+```text
+Client ──[Upload file + JWT]──> FastAPI Router ──> FileValidationService ──> StorageService ──> GCS Bucket ──> Signed URL ──> Client
+```
+*Note*: The frontend never contacts Google Cloud directly. The backend acts as a validating proxy.
+
+### 2. Services
+- **`FileValidationService`**: Validates file bounds to prevent malicious uploads.
+  - Rejects files exceeding size limits (`MAX_IMAGE_SIZE` 5MB, `MAX_AUDIO_SIZE` 10MB).
+  - Validates extension and MIME types (Images: `.jpg`, `.jpeg`, `.png`; Audio: `.wav`, `.mp3`, `.m4a`).
+  - Cleans up names to prevent directory traversal exploits.
+  - Automatically translates filenames to unique `UUID`-based strings (e.g. `images/550e8400-e29b-41d4-a716-446655440000.jpg`).
+  - Implements a malware scan placeholder check.
+- **`StorageService`**: Initiates connections to Google Cloud Storage using environment credentials. Handles uploads, deletions, existence queries, and generates secure **v4 signed URLs** (expiry: 24h) for client-side download requests.
+- **`SpeechService`**: Hooks into the Google Cloud Speech-to-Text engine. Auto-detects dialects (multilingual: English/Hindi) and returns the transcript and a confidence score.
+
+### 3. REST API Endpoints
+All endpoints are JWT-authenticated and locked to the **Citizen** role:
+- `POST /api/upload/image`: Validates and uploads an image. Returns the signed URL, blob name, and size.
+- `POST /api/upload/audio`: Validates, uploads, and transcribes audio. Returns the audio signed URL, transcript, and confidence score.
+- `DELETE /api/upload/image/{blob_name:path}`: Deletes an image from the GCS bucket. Restricted to files starting with `images/`.
+- `DELETE /api/upload/audio/{blob_name:path}`: Deletes an audio file from the GCS bucket. Restricted to files starting with `voice/`.
+
+### 4. Running Upload Unit Tests
+To run the upload unit tests (uses mock clients):
+```bash
+pytest tests/test_upload.py
+```
+
+
 

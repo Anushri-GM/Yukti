@@ -13,10 +13,17 @@ class Settings(BaseSettings):
     # GCP configuration
     GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
     GOOGLE_APPLICATION_CREDENTIALS: Optional[str] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    GOOGLE_CLOUD_PROJECT: Optional[str] = os.getenv("GOOGLE_CLOUD_PROJECT")
+    GCS_BUCKET_NAME: Optional[str] = os.getenv("GCS_BUCKET_NAME")
     CLOUD_STORAGE_BUCKET: Optional[str] = os.getenv("CLOUD_STORAGE_BUCKET")
     GOOGLE_MAPS_API_KEY: Optional[str] = os.getenv("GOOGLE_MAPS_API_KEY")
+    
+    # Upload limits
+    MAX_IMAGE_SIZE: int = int(os.getenv("MAX_IMAGE_SIZE", 5 * 1024 * 1024))
+    MAX_AUDIO_SIZE: int = int(os.getenv("MAX_AUDIO_SIZE", 10 * 1024 * 1024))
 
     class Config:
         case_sensitive = True
 
 settings = Settings()
+
