@@ -84,10 +84,10 @@ export const DashboardLayout: React.FC<LayoutProps> = ({ children, activeView, o
           <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-8 h-8 rounded-full bg-gov-brand-emerald-500 text-white flex items-center justify-center font-bold text-sm uppercase">
-                {user.name.charAt(0)}
+                {user?.full_name?.charAt(0) || ''}
               </div>
               <div className="overflow-hidden">
-                <h4 className="font-semibold text-xs text-slate-800 dark:text-slate-200 truncate">{user.name}</h4>
+                <h4 className="font-semibold text-xs text-slate-800 dark:text-slate-200 truncate">{user?.full_name || ''}</h4>
                 <span className="text-[10px] text-slate-500 block uppercase font-bold">{user.role}</span>
               </div>
             </div>

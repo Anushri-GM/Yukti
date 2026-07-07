@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import apiClient from '../services/api';
 
 export interface User {
-  id: number;
+  id: string;
   full_name: string;
   email: string;
   role: 'Citizen' | 'Officer' | 'MP';
@@ -25,7 +25,7 @@ interface AuthState {
   error: string | null;
   
   register: (payload: any) => Promise<boolean>;
-  login: (credentials: { email: string; password: str }) => Promise<boolean>;
+  login: (credentials: { email: string; password: string }) => Promise<boolean>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   updateProfile: (payload: any) => Promise<boolean>;

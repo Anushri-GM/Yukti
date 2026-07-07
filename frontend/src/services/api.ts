@@ -69,4 +69,10 @@ apiClient.interceptors.response.use(
   }
 );
 
+export const register = (payload: any) => apiClient.post('/api/auth/register', payload);
+export const login = (credentials: any) => apiClient.post('/api/auth/login', credentials);
+export const logout = () => apiClient.post('/api/auth/logout');
+export const refresh = (refreshToken: string) => apiClient.post('/api/auth/refresh', { refresh_token: refreshToken });
+export const getCurrentUser = () => apiClient.get('/api/auth/me');
+
 export default apiClient;

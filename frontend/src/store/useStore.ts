@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import apiClient from '../services/api';
 
 export interface Ward {
   id: number;
@@ -105,11 +106,8 @@ export const useStore = create<StoreState>((set, get) => ({
 
   fetchWards: async () => {
     try {
-      const res = await fetch('/api/v1/wards');
-      if (res.ok) {
-        const data = await res.json();
-        set({ wards: data });
-      }
+      const res = await apiClient.get('/api/v1/wards');
+      set({ wards: res.data });
     } catch (e) {
       console.error("Error fetching wards:", e);
     }
@@ -117,11 +115,8 @@ export const useStore = create<StoreState>((set, get) => ({
 
   fetchSubmissions: async () => {
     try {
-      const res = await fetch('/api/v1/citizens/submissions');
-      if (res.ok) {
-        const data = await res.json();
-        set({ submissions: data });
-      }
+      const res = await apiClient.get('/api/v1/citizens/submissions');
+      set({ submissions: res.data });
     } catch (e) {
       console.error("Error fetching submissions:", e);
     }
@@ -129,11 +124,8 @@ export const useStore = create<StoreState>((set, get) => ({
 
   fetchProjects: async () => {
     try {
-      const res = await fetch('/api/v1/projects');
-      if (res.ok) {
-        const data = await res.json();
-        set({ projects: data });
-      }
+      const res = await apiClient.get('/api/v1/projects');
+      set({ projects: res.data });
     } catch (e) {
       console.error("Error fetching projects:", e);
     }
@@ -146,11 +138,12 @@ export const useStore = create<StoreState>((set, get) => ({
       if (ward) formData.append('ward', ward);
       if (imageFile) formData.append('image', imageFile);
       
-      const res = await fetch('/api/v1/citizens/submit', {
-        method: 'POST',
-        body: formData,
+      const res = await apiClient.post('/api/v1/citizens/submit', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      if (res.ok) {
+      if (res.status === 200 || res.status === 201) {
         await get().fetchSubmissions();
         return true;
       }
@@ -163,16 +156,15 @@ export const useStore = create<StoreState>((set, get) => ({
 
   verifySubmission: async (id, status, category, urgency, convert) => {
     try {
-      const queryParams = new URLSearchParams({
-        status,
-        category,
-        urgency: urgency.toString(),
-        convert_to_project: convert.toString()
+      const res = await apiClient.put(`/api/v1/officers/submissions/${id}/verify`, null, {
+        params: {
+          status,
+          category,
+          urgency,
+          convert_to_project: convert
+        }
       });
-      const res = await fetch(`/api/v1/officers/submissions/${id}/verify?${queryParams}`, {
-        method: 'PUT'
-      });
-      if (res.ok) {
+      if (res.status === 200) {
         await get().fetchSubmissions();
         await get().fetchProjects();
       }
@@ -184,28 +176,19 @@ export const useStore = create<StoreState>((set, get) => ({
   runSimulation: async (budget, weights, focus, multiplier) => {
     set({ isSimulating: true });
     try {
-      const res = await fetch('/api/v1/mps/simulate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          budget,
-          weights,
-          priority_focus: focus || null,
-          vulnerability_multiplier: multiplier,
-        }),
+      const res = await apiClient.post('/api/v1/mps/simulate', {
+        budget,
+        weights,
+        priority_focus: focus || null,
+        vulnerability_multiplier: multiplier,
       });
-      if (res.ok) {
-        const data = await res.json();
-        set({ 
-          simulationResult: data,
-          simulatedBudget: budget,
-          simulatedWeights: weights,
-          simulatedFocus: focus,
-          simulatedMultiplier: multiplier
-        });
-      }
+      set({ 
+        simulationResult: res.data,
+        simulatedBudget: budget,
+        simulatedWeights: weights,
+        simulatedFocus: focus,
+        simulatedMultiplier: multiplier
+      });
     } catch (e) {
       console.error("Error running simulation:", e);
     } finally {

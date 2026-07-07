@@ -34,4 +34,8 @@ app.include_router(users.router)
 app.include_router(suggestions.router)
 app.include_router(upload.router)
 
+# Mount decision support sub-app
+from app.main import app as app_v1
+app.mount("/", app_v1)
+
 

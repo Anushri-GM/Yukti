@@ -79,7 +79,7 @@ export const Profile: React.FC = () => {
         <div className="md:col-span-1 space-y-6">
           <div className="gov-card text-center space-y-4">
             <div className="w-20 h-20 bg-gov-brand-blue-50 dark:bg-gov-brand-blue-900/20 text-gov-brand-blue-500 rounded-full flex items-center justify-center font-bold text-3xl mx-auto uppercase border border-slate-100 dark:border-slate-800">
-              {user?.full_name.charAt(0)}
+              {user?.full_name?.charAt(0) || ''}
             </div>
             <div>
               <h3 className="text-lg font-bold">{user?.full_name}</h3>
