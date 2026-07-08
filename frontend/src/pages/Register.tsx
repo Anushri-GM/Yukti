@@ -16,7 +16,7 @@ export const Register: React.FC<RegisterProps> = ({ onBack, onSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'Citizen' | 'Officer' | 'MP'>('Citizen');
+  const [role, setRole] = useState<'Citizen' | 'MP'>('Citizen');
   const [lang, setLang] = useState('en');
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -62,7 +62,7 @@ export const Register: React.FC<RegisterProps> = ({ onBack, onSuccess }) => {
             <Landmark className="h-6 w-6" />
           </div>
           <h2 className="text-2xl font-extrabold tracking-tight">Create YUKTI Account</h2>
-          <p className="text-xs text-slate-500">Register as a Citizen, Officer, or MP representative.</p>
+          <p className="text-xs text-slate-500">Register as a Citizen or Member of Parliament (MP).</p>
         </div>
 
         {(localError || error) && (
@@ -80,7 +80,6 @@ export const Register: React.FC<RegisterProps> = ({ onBack, onSuccess }) => {
               className="w-full text-sm bg-gov-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-2.5 text-slate-900 dark:text-white focus:outline-none"
             >
               <option value="Citizen">Citizen User</option>
-              <option value="Officer">Government Officer</option>
               <option value="MP">Member of Parliament (MP)</option>
             </select>
           </div>

@@ -3,7 +3,6 @@ import { useAuthStore } from './store/authStore';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { Home } from './pages/Home';
 import { CitizenPortal } from './pages/CitizenPortal';
-import { OfficerDashboard } from './pages/OfficerDashboard';
 import { MpDashboard } from './pages/MpDashboard';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
@@ -14,9 +13,10 @@ import { NotFound } from './pages/NotFound';
 function App() {
   const { isAuthenticated, checkAuth, isLoading } = useAuthStore();
   const [currentView, setCurrentView] = useState<string>('home');
+  // For MP/Citizen sub-pages
+  const [subView, setSubView] = useState<string>('overview');
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
 
-  // Load active session from local storage on boot
   useEffect(() => {
     checkAuth();
   }, []);
@@ -33,20 +33,19 @@ function App() {
     );
   }
 
-  // Auth portal fallback
   if (!isAuthenticated) {
     if (authView === 'register') {
       return (
-        <Register 
-          onBack={() => setAuthView('login')} 
-          onSuccess={() => setCurrentView('home')} 
+        <Register
+          onBack={() => setAuthView('login')}
+          onSuccess={() => setCurrentView('home')}
         />
       );
     }
     return (
-      <Login 
-        onSuccess={() => setCurrentView('home')} 
-        onRegisterLink={() => setAuthView('register')} 
+      <Login
+        onSuccess={() => setCurrentView('home')}
+        onRegisterLink={() => setAuthView('register')}
       />
     );
   }
@@ -54,12 +53,11 @@ function App() {
   const handleUnauthorizedRedirect = () => {
     const user = useAuthStore.getState().user;
     if (user?.role === 'Citizen') setCurrentView('citizen');
-    else if (user?.role === 'Officer') setCurrentView('officer');
     else if (user?.role === 'MP') setCurrentView('mp');
     else setCurrentView('home');
   };
 
-  // Sync currentView based on auth status and user role
+  // Sync currentView based on auth status and role
   useEffect(() => {
     if (isAuthenticated) {
       handleUnauthorizedRedirect();
@@ -68,45 +66,48 @@ function App() {
     }
   }, [isAuthenticated]);
 
-  // Helper route switch handler
+  const handleNavigate = (view: string) => {
+    // MP sub-pages route through the mp view
+    const mpPages = ['overview', 'clusters', 'map', 'analytics', 'simulator', 'reports'];
+    // Citizen sub-pages route through the citizen view
+    const citizenPages = ['dashboard', 'submit', 'history'];
+
+    if (mpPages.includes(view)) {
+      setCurrentView('mp');
+      setSubView(view);
+    } else if (citizenPages.includes(view)) {
+      setCurrentView('citizen');
+      setSubView(view);
+    } else {
+      setCurrentView(view);
+    }
+  };
+
   const renderViewContent = () => {
     switch (currentView) {
       case 'home':
-        return <Home onNavigate={setCurrentView} />;
+        return <Home onNavigate={handleNavigate} />;
       case 'citizen':
         return (
           <ProtectedRoute allowedRoles={['Citizen']} onNavigateHome={handleUnauthorizedRedirect}>
-            <CitizenPortal />
-          </ProtectedRoute>
-        );
-      case 'officer':
-        return (
-          <ProtectedRoute allowedRoles={['Officer']} onNavigateHome={handleUnauthorizedRedirect}>
-            <OfficerDashboard />
+            <CitizenPortal initialSubView={subView} onSubViewChange={setSubView} />
           </ProtectedRoute>
         );
       case 'mp':
         return (
           <ProtectedRoute allowedRoles={['MP']} onNavigateHome={handleUnauthorizedRedirect}>
-            <MpDashboard />
+            <MpDashboard initialSubView={subView} onSubViewChange={setSubView} />
           </ProtectedRoute>
         );
       case 'settings':
         return <Profile />;
-      case 'help':
-        return (
-          <div className="gov-card max-w-xl mx-auto text-center space-y-2">
-            <h3 className="text-xl font-bold">YUKTI Help Center</h3>
-            <p className="text-slate-550 dark:text-slate-400 text-xs">Access guides and documentation detailing Priority Engine score parameters.</p>
-          </div>
-        );
       default:
-        return <NotFound onGoHome={() => setCurrentView('home')} />;
+        return <NotFound onGoHome={() => handleUnauthorizedRedirect()} />;
     }
   };
 
   return (
-    <DashboardLayout activeView={currentView} onNavigate={setCurrentView}>
+    <DashboardLayout activeView={currentView} subView={subView} onNavigate={handleNavigate}>
       {renderViewContent()}
     </DashboardLayout>
   );

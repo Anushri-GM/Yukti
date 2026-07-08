@@ -2,111 +2,143 @@ import React from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
 import { useNotificationStore } from '../store/notificationStore';
-import { 
-  Menu, Sun, Moon, Sparkles, LogOut, LayoutDashboard, 
-  UserCheck, AlertCircle, HelpCircle, Settings, Bell, ChevronRight 
+import {
+  Sun, Moon, Sparkles, LogOut, LayoutDashboard,
+  Settings, Bell, ChevronRight,
+  Map, BarChart3, Layers, Cpu, FileText, ClipboardList
 } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
   activeView: string;
+  subView?: string;
   onNavigate: (view: string) => void;
 }
 
-export const DashboardLayout: React.FC<LayoutProps> = ({ children, activeView, onNavigate }) => {
+export const DashboardLayout: React.FC<LayoutProps> = ({ children, activeView, subView, onNavigate }) => {
   const { user, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const { notifications, removeNotification } = useNotificationStore();
 
-  const getNavigationItems = () => {
-    const items = [
-      { name: 'Dashboard', icon: LayoutDashboard, view: 'home' }
-    ];
+  // ── Role-scoped nav items ─────────────────────────────────────────────────
+  const getCitizenNav = () => [
+    { label: 'My Dashboard',     icon: LayoutDashboard, view: 'dashboard'  },
+    { label: 'Submit Grievance', icon: ClipboardList,   view: 'submit'  },
+    { label: 'My Reports',       icon: FileText,        view: 'history'  },
+    { label: 'Profile',          icon: Settings,        view: 'settings' },
+  ];
 
-    if (user?.role === 'Citizen') {
-      items.push({ name: 'Citizen Portal', icon: Sparkles, view: 'citizen' });
-    } else if (user?.role === 'Officer') {
-      items.push({ name: 'Officer Portal', icon: UserCheck, view: 'officer' });
-    } else if (user?.role === 'MP') {
-      items.push({ name: 'MP Analytics', icon: AlertCircle, view: 'mp' });
-    }
+  const getMpNav = () => [
+    { label: 'Overview',          icon: LayoutDashboard, view: 'overview'   },
+    { label: 'Issue Clusters',    icon: Layers,          view: 'clusters'   },
+    { label: 'Constituency Map',  icon: Map,             view: 'map'        },
+    { label: 'Analytics',         icon: BarChart3,       view: 'analytics'  },
+    { label: 'What-If Simulator', icon: Cpu,             view: 'simulator'  },
+    { label: 'Profile',           icon: Settings,        view: 'settings'   },
+  ];
 
-    items.push(
-      { name: 'Settings', icon: Settings, view: 'settings' },
-      { name: 'Help', icon: HelpCircle, view: 'help' }
-    );
-    return items;
+  const navItems = user?.role === 'MP' ? getMpNav() : user?.role === 'Citizen' ? getCitizenNav() : [];
+
+  const getIsActive = (view: string) => {
+    if (view === 'settings') return activeView === 'settings';
+    return subView === view || activeView === view;
   };
 
-  const navigationItems = getNavigationItems();
+  const breadcrumbMap: Record<string, string> = {
+    overview: 'Overview', clusters: 'Issue Clusters', map: 'Constituency Map',
+    analytics: 'Analytics', simulator: 'What-If Simulator', reports: 'Reports',
+    citizen: 'Citizen Portal', settings: 'Profile',
+    dashboard: 'My Dashboard', submit: 'Submit Grievance', history: 'My Reports'
+  };
+  const breadcrumb = subView 
+    ? breadcrumbMap[subView] ?? subView
+    : breadcrumbMap[activeView] ?? activeView;
+
+  // ── Notification bg by type ───────────────────────────────────────────────
+  const notifClass = (type: string) => {
+    if (type === 'success') return 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-300';
+    if (type === 'error')   return 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-300';
+    return 'bg-white border-slate-200 text-slate-800 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200';
+  };
 
   return (
-    <div className="min-h-screen flex bg-gov-slate-50 dark:bg-gov-slate-950 transition-colors duration-200">
-      
-      {/* Toast Notification Container */}
-      <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+
+      {/* Toast notifications */}
+      <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none">
         {notifications.map((n) => (
-          <div key={n.id} className={`flex items-start gap-3 p-4 rounded-lg shadow-lg border text-sm ${
-            n.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-300' :
-            n.type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-850 dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-300' :
-            'bg-slate-50 border-slate-200 text-slate-800 dark:bg-slate-800/80 dark:border-slate-700 dark:text-slate-250'
-          }`}>
-            <div className="flex-1">{n.message}</div>
-            <button onClick={() => removeNotification(n.id)} className="text-slate-400 hover:text-slate-600 font-bold">×</button>
+          <div key={n.id} className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-lg border text-sm ${notifClass(n.type)}`}>
+            <div className="flex-1 font-medium">{n.message}</div>
+            <button onClick={() => removeNotification(n.id)} className="text-slate-400 hover:text-slate-600 font-bold leading-none">×</button>
           </div>
         ))}
       </div>
 
-      {/* Sidebar Panel */}
-      <aside className="w-64 bg-white dark:bg-gov-slate-900 border-r border-slate-200 dark:border-slate-800 hidden md:flex flex-col shrink-0">
-        {/* Header Logo */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800 gap-2">
-          <div className="p-1.5 bg-gov-brand-blue-500 rounded text-white">
-            <Sparkles className="h-5 w-5" />
+      {/* ── Sidebar ─────────────────────────────────────────────────────────── */}
+      <aside className="w-60 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 hidden md:flex flex-col shrink-0 shadow-sm">
+
+        {/* Logo */}
+        <div className="h-16 flex items-center px-5 border-b border-slate-100 dark:border-slate-800 gap-3">
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-md flex-shrink-0">
+            <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>
-            <h1 className="font-extrabold text-gov-brand-blue-900 dark:text-white tracking-wide">YUKTI</h1>
-            <span className="text-[10px] text-gov-brand-emerald-500 dark:text-gov-brand-emerald-500 font-extrabold tracking-widest uppercase block -mt-1">Decision Intelligence</span>
+            <div className="font-black text-slate-900 dark:text-white text-base tracking-tight">YUKTI</div>
+            <div className="text-[9px] text-emerald-500 font-bold tracking-widest uppercase -mt-0.5">Decision Intelligence</div>
           </div>
         </div>
 
-        {/* Navigation list */}
-        <nav className="flex-1 p-4 space-y-1">
-          {navigationItems.map((item) => {
+        {/* Role badge */}
+        {user && (
+          <div className="px-4 pt-4 pb-1">
+            <div className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full ${
+              user.role === 'MP'      ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' :
+              user.role === 'Citizen' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' :
+              'bg-slate-100 text-slate-500'
+            }`}>
+              <span>{user.role === 'MP' ? '🏛' : '👤'}</span>
+              {user.role === 'MP' ? 'MP Dashboard' : 'Citizen Portal'}
+            </div>
+          </div>
+        )}
+
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+          {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeView === item.view;
+            const active = getIsActive(item.view);
             return (
               <button
-                key={item.view}
+                key={`${item.label}-${item.view}`}
                 onClick={() => onNavigate(item.view)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-gov-brand-blue-500 text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150 group ${
+                  active
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <Icon className="h-4 w-4" />
-                {item.name}
+                <Icon className={`h-4 w-4 flex-shrink-0 transition-colors ${active ? 'text-white' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
+                <span>{item.label}</span>
               </button>
             );
           })}
         </nav>
 
-        {/* User Card info */}
+        {/* User card */}
         {user && (
-          <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-8 rounded-full bg-gov-brand-emerald-500 text-white flex items-center justify-center font-bold text-sm uppercase">
-                {user?.full_name?.charAt(0) || ''}
+          <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm uppercase flex-shrink-0 shadow-sm">
+                {user.full_name?.charAt(0) ?? '?'}
               </div>
-              <div className="overflow-hidden">
-                <h4 className="font-semibold text-xs text-slate-800 dark:text-slate-200 truncate">{user?.full_name || ''}</h4>
-                <span className="text-[10px] text-slate-500 block uppercase font-bold">{user.role}</span>
+              <div className="overflow-hidden min-w-0">
+                <div className="font-semibold text-sm text-slate-800 dark:text-slate-100 truncate leading-tight">{user.full_name}</div>
+                <div className="text-[10px] text-slate-400 uppercase font-bold">{user.role}</div>
               </div>
             </div>
             <button
               onClick={logout}
-              className="w-full flex items-center justify-center gap-2 px-3 py-1.5 border border-slate-250 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-150 font-medium"
             >
               <LogOut className="h-3 w-3" />
               Sign Out
@@ -115,42 +147,39 @@ export const DashboardLayout: React.FC<LayoutProps> = ({ children, activeView, o
         )}
       </aside>
 
-      {/* Main Column */}
+      {/* ── Main area ───────────────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
-        
-        {/* Top Navbar */}
-        <header className="h-16 bg-white dark:bg-gov-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 z-10 shadow-sm">
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <span>YUKTI</span>
-            <ChevronRight className="h-3 w-3" />
-            <span className="font-medium text-slate-800 dark:text-slate-200 capitalize">{activeView}</span>
-          </div>
 
-          <div className="flex items-center gap-4">
-            {/* Theme selector */}
-            <button 
+        {/* Top bar */}
+        <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 flex-shrink-0 shadow-sm">
+          <div className="flex items-center gap-1.5 text-sm">
+            <span className="text-slate-400 font-medium">YUKTI</span>
+            <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
+            <span className="font-semibold text-slate-800 dark:text-slate-100">{breadcrumb}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
               onClick={toggleTheme}
-              className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
               aria-label="Toggle Theme"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-white transition-all duration-150"
             >
               {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </button>
-            
-            {/* Notifications icon */}
-            <button className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 relative">
+            <button
+              aria-label="Notifications"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-white transition-all duration-150 relative"
+            >
               <Bell className="h-4 w-4" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-gov-brand-emerald-500 rounded-full" />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
             </button>
           </div>
         </header>
 
-        {/* Page Content viewport */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        {/* Content */}
+        <main className="flex-1 overflow-y-auto p-6">
           {children}
         </main>
       </div>
-
     </div>
   );
 };

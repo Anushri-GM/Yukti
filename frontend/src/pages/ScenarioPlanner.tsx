@@ -27,7 +27,7 @@ export const ScenarioPlanner: React.FC = () => {
       budget,
       {
         urgency: urgencyWeight,
-        focus_impact: impactWeight,
+        impact: impactWeight,
         demographics: demoWeight,
         cost_efficiency: costWeight
       },

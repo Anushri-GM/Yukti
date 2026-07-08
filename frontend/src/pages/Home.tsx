@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Users, ShieldAlert, ArrowRight } from 'lucide-react';
+import { Sparkles, Users, ArrowRight, ClipboardList, Map, BarChart3 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 interface HomeProps {
@@ -10,12 +10,12 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
   const { user } = useAuthStore();
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 py-4">
-      {/* Hero Welcome banner */}
+    <div className="max-w-5xl mx-auto space-y-8 py-4">
+      {/* Hero */}
       <div className="bg-gradient-to-r from-gov-brand-blue-900 to-gov-brand-blue-500 rounded-2xl p-8 md:p-12 text-white shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
         <div className="max-w-xl space-y-4">
-          <span className="bg-white/10 text-gov-brand-emerald-50:hover text-emerald-300 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+          <span className="bg-white/10 text-emerald-300 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
             National Decision Support Suite
           </span>
           <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
@@ -27,73 +27,106 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* Quick Action Navigation Grid */}
-      <div className={`grid grid-cols-1 gap-6 ${
-        !user ? 'md:grid-cols-3' : 'md:grid-cols-1 max-w-md mx-auto'
-      }`}>
-        {/* Citizen Card */}
-        {(!user || user.role === 'Citizen') && (
+      {/* Quick Action Grid — role-filtered */}
+      {(!user || user.role === 'Citizen') && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Submit */}
           <div className="gov-card flex flex-col justify-between hover:scale-[1.01] transition-transform">
             <div className="space-y-4">
               <div className="w-12 h-12 rounded-xl bg-gov-brand-blue-50 dark:bg-gov-brand-blue-900/20 text-gov-brand-blue-500 flex items-center justify-center">
-                <Users className="h-6 w-6" />
+                <ClipboardList className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold">Citizen Portal</h3>
+              <h3 className="text-xl font-bold">Submit a Grievance</h3>
               <p className="text-slate-550 dark:text-slate-400 text-sm leading-relaxed">
-                Report public infrastructure issues, supply leaks, and educational needs directly to constituency representatives.
+                Report potholes, water leaks, broken streetlights and more. YUKTI AI analyses your report instantly.
               </p>
             </div>
-            <button 
+            <button
               onClick={() => onNavigate('citizen')}
               className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 border border-gov-brand-blue-500/30 text-gov-brand-blue-500 rounded-lg font-semibold hover:bg-gov-brand-blue-50 transition-colors"
             >
-              Enter Citizen Portal <ArrowRight className="h-4 w-4" />
+              Go to Citizen Portal <ArrowRight className="h-4 w-4" />
             </button>
           </div>
-        )}
 
-        {/* Officer Card */}
-        {(!user || user.role === 'Officer') && (
+          {/* History */}
           <div className="gov-card flex flex-col justify-between hover:scale-[1.01] transition-transform">
             <div className="space-y-4">
-              <div className="w-12 h-12 rounded-xl bg-gov-brand-emerald-50 dark:bg-gov-brand-emerald-900/20 text-gov-brand-emerald-500 flex items-center justify-center">
-                <ShieldAlert className="h-6 w-6" />
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 flex items-center justify-center">
+                <Users className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold">Officer Panel</h3>
+              <h3 className="text-xl font-bold">My Reports</h3>
               <p className="text-slate-550 dark:text-slate-400 text-sm leading-relaxed">
-                Review and audit AI-categorized complaints, verify localized claims, and register them as official proposed projects.
+                View all your submitted grievances with live AI analysis results, urgency scores, and status updates.
               </p>
             </div>
-            <button 
-              onClick={() => onNavigate('officer')}
-              className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 border border-gov-brand-emerald-500/30 text-gov-brand-emerald-500 rounded-lg font-semibold hover:bg-gov-brand-emerald-50 transition-colors"
+            <button
+              onClick={() => onNavigate('citizen')}
+              className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 border border-emerald-500/30 text-emerald-500 rounded-lg font-semibold hover:bg-emerald-50 transition-colors"
             >
-              Enter Officer Panel <ArrowRight className="h-4 w-4" />
+              View My Reports <ArrowRight className="h-4 w-4" />
             </button>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* MP Dashboard Card */}
-        {(!user || user.role === 'MP') && (
+      {(!user || user.role === 'MP') && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="gov-card flex flex-col justify-between hover:scale-[1.01] transition-transform">
             <div className="space-y-4">
               <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/10 text-amber-500 flex items-center justify-center">
                 <Sparkles className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold">MP Analytics</h3>
+              <h3 className="text-xl font-bold">MP Intelligence Overview</h3>
               <p className="text-slate-550 dark:text-slate-400 text-sm leading-relaxed">
-                Access the executive decision dashboard, run "What-If" planning optimizations, and review budget allocation summaries.
+                Constituency health dashboard, AI insights, critical areas, and recommended actions.
               </p>
             </div>
-            <button 
-              onClick={() => onNavigate('mp')}
+            <button
+              onClick={() => onNavigate('overview')}
               className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 border border-amber-500/30 text-amber-500 rounded-lg font-semibold hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors"
             >
-              Enter MP Analytics <ArrowRight className="h-4 w-4" />
+              Open Overview <ArrowRight className="h-4 w-4" />
             </button>
           </div>
-        )}
-      </div>
+
+          <div className="gov-card flex flex-col justify-between hover:scale-[1.01] transition-transform">
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-gov-brand-blue-50 dark:bg-gov-brand-blue-900/20 text-gov-brand-blue-500 flex items-center justify-center">
+                <Map className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold">Constituency Map</h3>
+              <p className="text-slate-550 dark:text-slate-400 text-sm leading-relaxed">
+                GIS-style interactive map of grievance clusters across wards and localities.
+              </p>
+            </div>
+            <button
+              onClick={() => onNavigate('map')}
+              className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 border border-gov-brand-blue-500/30 text-gov-brand-blue-500 rounded-lg font-semibold hover:bg-gov-brand-blue-50 transition-colors"
+            >
+              Open Map <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="gov-card flex flex-col justify-between hover:scale-[1.01] transition-transform">
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/10 text-purple-500 flex items-center justify-center">
+                <BarChart3 className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold">Issue Clusters</h3>
+              <p className="text-slate-550 dark:text-slate-400 text-sm leading-relaxed">
+                View aggregated issue clusters grouped by category, ward, priority, and status.
+              </p>
+            </div>
+            <button
+              onClick={() => onNavigate('clusters')}
+              className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 border border-purple-500/30 text-purple-500 rounded-lg font-semibold hover:bg-purple-50 transition-colors"
+            >
+              Open Clusters <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
