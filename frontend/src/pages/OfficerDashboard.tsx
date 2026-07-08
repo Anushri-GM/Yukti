@@ -9,11 +9,11 @@ import {
 export const OfficerDashboard: React.FC = () => {
   const { submissions, fetchSubmissions, verifySubmission } = useStore();
   
-  const [selectedSubId, setSelectedSubId] = useState<number | null>(null);
+  const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
   const [actionCategory, setActionCategory] = useState('');
   const [actionUrgency, setActionUrgency] = useState(3);
   const [convertToProject, setConvertToProject] = useState(true);
-  const [verifyingId, setVerifyingId] = useState<number | null>(null);
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSubmissions();
@@ -24,7 +24,7 @@ export const OfficerDashboard: React.FC = () => {
 
   const selectedSub = submissions.find(sub => sub.id === selectedSubId);
 
-  const selectSubmission = (id: number) => {
+  const selectSubmission = (id: string) => {
     setSelectedSubId(id);
     const sub = submissions.find(s => s.id === id);
     if (sub) {

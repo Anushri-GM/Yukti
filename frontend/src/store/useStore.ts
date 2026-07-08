@@ -13,7 +13,7 @@ export interface Ward {
 }
 
 export interface CitizenSubmission {
-  id: number;
+  id: string;
   text: string;
   voice_url?: string;
   image_url?: string;
@@ -41,7 +41,7 @@ export interface Project {
   priority_score: number;
   status: string;
   justification: string;
-  submission_id?: number;
+  submission_id?: string;
   is_selected?: boolean;
 }
 
@@ -79,7 +79,7 @@ interface StoreState {
   fetchSubmissions: () => Promise<void>;
   fetchProjects: () => Promise<void>;
   submitGrievance: (text: string, ward: string, imageFile: File | null) => Promise<boolean>;
-  verifySubmission: (id: number, status: string, category: string, urgency: number, convert: boolean) => Promise<void>;
+  verifySubmission: (id: string, status: string, category: string, urgency: number, convert: boolean) => Promise<void>;
   runSimulation: (budget: number, weights: SimulationWeights, focus: string, multiplier: number) => Promise<void>;
 }
 
