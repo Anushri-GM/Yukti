@@ -131,68 +131,7 @@ export const CitizenPortal: React.FC = () => {
               />
             </div>
 
-            {/* Multimedia controls */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Image Input */}
-              <div className="relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                  id="image-upload-input"
-                />
-                <label
-                  htmlFor="image-upload-input"
-                  className="flex flex-col items-center justify-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg p-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-950/20 text-slate-500 hover:text-gov-brand-blue-500 transition-colors h-20"
-                >
-                  {uploadingImage ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mb-1 text-gov-brand-blue-500" />
-                      <span className="text-[10px] font-bold">{uploadProgress}%</span>
-                    </>
-                  ) : imagePreview ? (
-                    <img src={imagePreview} alt="Preview" className="h-full w-full object-cover rounded" />
-                  ) : (
-                    <>
-                      <ImageIcon className="h-5 w-5 mb-1" />
-                      <span className="text-[10px] font-bold">Add Photo</span>
-                    </>
-                  )}
-                </label>
-              </div>
-
-              {/* Audio Input */}
-              <button
-                type="button"
-                onClick={simulateVoiceRecording}
-                disabled={isTranscribing}
-                className={`flex flex-col items-center justify-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg p-3 text-slate-500 transition-colors h-20 ${
-                  isRecording 
-                    ? 'bg-rose-50 border-rose-300 text-rose-600 animate-pulse'
-                    : isTranscribing
-                    ? 'bg-amber-50 border-amber-300 text-amber-600'
-                    : 'hover:bg-slate-50 dark:hover:bg-slate-950/20 hover:text-gov-brand-blue-500'
-                }`}
-              >
-                {isTranscribing ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin mb-1" />
-                    <span className="text-[10px] font-bold">Transcribing...</span>
-                  </>
-                ) : isRecording ? (
-                  <>
-                    <Mic className="h-5 w-5 mb-1" />
-                    <span className="text-[10px] font-bold">Stop Rec</span>
-                  </>
-                ) : (
-                  <>
-                    <Mic className="h-5 w-5 mb-1" />
-                    <span className="text-[10px] font-bold">Record Voice</span>
-                  </>
-                )}
-              </button>
-            </div>
+            {/* Multimedia controls temporarily disabled for hackathon */}
 
             <button
               type="submit"

@@ -11,10 +11,10 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip as ChartTooltip, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line
 } from 'recharts';
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
+import { ConstituencyMap } from '../components/ConstituencyMap';
 
-// Center of Constituency default (Delhi area coordinates or constituency center)
-const DEFAULT_CENTER = { lat: 28.6139, lng: 77.2090 };
+// Center of Constituency default (Coimbatore coordinates)
+const DEFAULT_CENTER = { lat: 10.9983, lng: 76.9616 };
 
 const PRIORITY_LEVELS = ['Very High', 'High', 'Medium', 'Low'];
 const DEPARTMENTS = [
@@ -66,7 +66,7 @@ export const MpDashboard: React.FC = () => {
   const [aiRecommend, setAiRecommend] = useState<any>(null);
 
   // Map settings
-  const mapRef = useRef<google.maps.Map | null>(null);
+  const mapRef = useRef<any>(null);
   const [mapCenter, setMapCenter] = useState(DEFAULT_CENTER);
 
   // Re-fetch data on mount
@@ -81,11 +81,6 @@ export const MpDashboard: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
-
-  // Google Maps Loader
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
-  });
 
   // Calculate Urgency text from numeric score
   const getPriorityLevel = (score: number): string => {
@@ -668,79 +663,15 @@ export const MpDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Right panel: Google Map */}
-          <div className="lg:col-span-2 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden relative shadow-inner h-full">
-            {loadError && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-6 text-center space-y-4">
-                <AlertCircle className="h-10 w-10 text-rose-500" />
-                <div>
-                  <h4 className="font-bold text-sm">Unable to load Google Maps.</h4>
-                  <p className="text-xs text-slate-500 mt-1 max-w-sm">Please verify VITE_GOOGLE_MAPS_API_KEY or check your internet settings.</p>
-                </div>
-              </div>
-            )}
-
-            {!loadError && !isLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-                <Loader2 className="h-8 w-8 animate-spin text-gov-brand-blue-500" />
-              </div>
-            )}
-
-            {isLoaded && !loadError && (
-              <GoogleMap
-                mapContainerStyle={{ width: '100%', height: '100%' }}
-                center={mapCenter}
-                zoom={14}
-                onLoad={(map) => { mapRef.current = map; }}
-                options={{
-                  styles: [
-                    {
-                      featureType: 'administrative',
-                      elementType: 'geometry',
-                      stylers: [{ visibility: 'on' }]
-                    }
-                  ],
-                  mapTypeControl: false,
-                  streetViewControl: false,
-                  fullscreenControl: true
-                }}
-              >
-                {filteredSubmissions.map((sub) => {
-                  if (!sub.latitude || !sub.longitude) return null;
-                  const lvl = getPriorityFromUrgency(sub.urgency);
-                  const isSelected = sub.id === selectedMarkerId;
-                  return (
-                    <Marker
-                      key={sub.id}
-                      position={{ lat: sub.latitude, lng: sub.longitude }}
-                      onClick={() => handleMarkerClick(sub)}
-                      icon={getMarkerIcon(lvl)}
-                    >
-                      {isSelected && (
-                        <InfoWindow onCloseClick={() => setSelectedMarkerId(null)}>
-                          <div className="p-2 space-y-1 text-slate-800 text-xs max-w-xs">
-                            <h4 className="font-extrabold text-gov-brand-blue-500 text-xs">Grievance Marker</h4>
-                            <p className="font-medium italic">"{sub.text.slice(0, 80)}..."</p>
-                            <div className="grid grid-cols-2 gap-1.5 pt-1.5 border-t border-slate-100 text-[10px] text-slate-500">
-                              <span><strong>Priority:</strong> {lvl}</span>
-                              <span><strong>Ward:</strong> {sub.ward}</span>
-                              <span><strong>Category:</strong> {sub.category}</span>
-                              <span><strong>Status:</strong> {sub.status}</span>
-                            </div>
-                            <button
-                              onClick={() => handleOpenDetails(sub)}
-                              className="mt-2 text-center w-full py-1 bg-gov-brand-blue-500 text-white rounded text-[10px] font-bold"
-                            >
-                              Open Details
-                            </button>
-                          </div>
-                        </InfoWindow>
-                      )}
-                    </Marker>
-                  );
-                })}
-              </GoogleMap>
-            )}
+          {/* Right panel: Leaflet Map */}
+          <div className="lg:col-span-2 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden relative shadow-inner h-full min-h-[400px]">
+            <ConstituencyMap
+              submissions={filteredSubmissions}
+              selectedMarkerId={selectedMarkerId}
+              onMarkerClick={handleMarkerClick}
+              center={mapCenter}
+              onViewDetails={handleOpenDetails}
+            />
           </div>
         </div>
       )}
