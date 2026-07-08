@@ -16,5 +16,6 @@ pandas==2.2.2
 
 google-genai==1.30.0
 google-auth==2.29.0
-ortools==9.10.4067
+
 faster-whisper
+ortools==9.10.4067
