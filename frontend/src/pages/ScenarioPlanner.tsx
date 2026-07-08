@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
-import { Sliders, Sparkles, AlertCircle, BarChart2, CheckCircle2, XCircle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Sliders, Sparkles, CheckCircle2, XCircle } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export const ScenarioPlanner: React.FC = () => {
   const { runSimulation, simulationResult, isSimulating, projects, simulatedBudget } = useStore();

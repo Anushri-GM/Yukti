@@ -3,13 +3,13 @@ import { useStore, CitizenSubmission } from '../store/useStore';
 import apiClient from '../services/api';
 import {
   BarChart3, RefreshCw, FileText, CheckSquare,
-  Wallet, AlertCircle, Settings2, ShieldCheck, ArrowRight,
-  MapPin, Calendar, Filter, LayoutGrid, Map as MapIcon,
-  Loader2, X, Download, ShieldAlert, Award, FileSpreadsheet, Send, Clock,
-  TrendingUp, Flame, ChevronDown, ChevronUp, Layers, Users
+  Wallet, AlertCircle, ArrowRight,
+  MapPin, Calendar, Filter,
+  Loader2, X, Download, ShieldAlert, Award, Send, Clock,
+  TrendingUp, Flame, ChevronDown, ChevronUp, Layers
 } from 'lucide-react';
 import {
-  ResponsiveContainer, PieChart, Pie, Cell, Tooltip as ChartTooltip, Legend,
+  ResponsiveContainer, PieChart, Pie, Cell, Tooltip as ChartTooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line,
   AreaChart, Area, ComposedChart
 } from 'recharts';
@@ -115,9 +115,8 @@ interface MpDashboardProps {
 
 export const MpDashboard: React.FC<MpDashboardProps> = ({
   initialSubView = 'overview',
-  onSubViewChange,
 }) => {
-  const { projects, submissions, fetchProjects, fetchSubmissions, fetchWards } = useStore();
+  const { submissions, fetchProjects, fetchSubmissions, fetchWards } = useStore();
 
   // Sub-tab — driven by parent sidebar nav
   const [activeSubTab, setActiveSubTab] = useState<'overview' | 'clusters' | 'map' | 'analytics' | 'simulator' | 'reports'>(initialSubView as any);
@@ -184,12 +183,6 @@ export const MpDashboard: React.FC<MpDashboardProps> = ({
   const hotspots = useMemo(
     () => [...allClusters].sort((a, b) => b.count - a.count || b.maxUrgency - a.maxUrgency).slice(0, 5),
     [allClusters]
-  );
-
-  // ── Map submissions (from visible clusters) ───────────────────────────────
-  const mapSubmissions = useMemo(
-    () => visibleClusters.flatMap(c => c.items),
-    [visibleClusters]
   );
 
   // ── Analytics (from filteredBase) ─────────────────────────────────────────

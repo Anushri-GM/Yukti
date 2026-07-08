@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { 
-  UserCheck, ShieldAlert, ListFilter, RefreshCw, 
+  UserCheck, ShieldAlert, RefreshCw, 
   CheckCircle, XCircle, AlertTriangle, ChevronRight,
-  TrendingUp, Clock
+  Clock
 } from 'lucide-react';
 
 export const OfficerDashboard: React.FC = () => {

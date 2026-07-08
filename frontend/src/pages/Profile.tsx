@@ -9,7 +9,7 @@ export const Profile: React.FC = () => {
   const [fullName, setFullName] = useState(user?.full_name || '');
   const [lang, setLang] = useState(user?.preferred_language || 'en');
   const [phone, setPhone] = useState(user?.phone_number || '');
-  const [profileImage, setProfileImage] = useState(user?.profile_image || '');
+  const [profileImage] = useState(user?.profile_image || '');
   
   // Password Form State
   const [currentPassword, setCurrentPassword] = useState('');
