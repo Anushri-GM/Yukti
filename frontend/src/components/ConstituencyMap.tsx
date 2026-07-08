@@ -28,7 +28,6 @@ const getPriorityConfig = (urgency: number) =>
 
 const getPriorityText = (urgency: number): string => getPriorityConfig(urgency).label;
 const getPriorityColor = (urgency: number): string => getPriorityConfig(urgency).color;
-const getPriorityBadge = (urgency: number): string => getPriorityConfig(urgency).badge;
 
 const getDepartment = (category: string): string => {
   const deptMap: Record<string, string> = {
