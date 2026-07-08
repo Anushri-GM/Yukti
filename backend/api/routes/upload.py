@@ -13,7 +13,7 @@ from services.file_validation_service import (
     generate_unique_filename,
     scan_for_malware
 )
-from services.storage_service import storage_service
+#from services.storage_service import storage_service
 from services.speech_service import speech_service
 import os
 
@@ -24,58 +24,22 @@ citizen_dependency = Depends(RoleChecker(["Citizen"]))
 
 @router.post(
     "/image",
-    status_code=status.HTTP_201_CREATED,
-    summary="Upload image file",
-    description="Uploads an image to Google Cloud Storage and returns its metadata including a signed URL. Supported formats: JPG, JPEG, PNG. Max size: 5MB.",
+    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+    summary="Image upload (Coming Soon)",
+    description="Image upload is currently unavailable in this hackathon build and will be added in a future release.",
 )
 async def upload_image_file(
     file: UploadFile = File(...),
     current_user: User = citizen_dependency
 ):
-    logger.info(f"User {current_user.id} initiated image upload for filename: {file.filename}")
-    
-    # Read file content
-    content = await file.read()
-    file_size = len(content)
-    
-    try:
-        # 1. Validate size
-        validate_file_size(file_size, settings.MAX_IMAGE_SIZE)
-        
-        # 2. Validate image types
-        validate_image_type(file.content_type, file.filename)
-        
-        # 3. Sanitize filename
-        clean_name = sanitize_filename(file.filename)
-        
-        # 4. Generate unique filename path
-        blob_name = generate_unique_filename(clean_name, "images")
-        
-        # 5. Malware scanning stub
-        scan_for_malware(content)
-        
-        # 6. Upload file content to Google Cloud Storage
-        storage_service.upload_image(content, blob_name, file.content_type)
-        
-        # 7. Generate a signed URL for reading the image
-        signed_url = storage_service.generate_signed_url(blob_name)
-        
-        logger.info(f"Image uploaded successfully. Blob: {blob_name}")
-        return {
-            "image_url": signed_url,
-            "blob_name": blob_name,
-            "size": file_size
-        }
-        
-    except HTTPException:
-        logger.warning(f"Image upload failed with HTTPException for user {current_user.id}")
-        raise
-    except Exception as e:
-        logger.error(f"Failed to upload image due to storage error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to upload image to GCS storage."
-        )
+    logger.info(
+        f"Image upload requested by user {current_user.id}, but the feature is disabled."
+    )
+
+    raise HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail="Image upload will be available in a future release."
+    )
 
 @router.post(
     "/audio",
@@ -167,7 +131,7 @@ def delete_image_file(
         )
         
     try:
-        storage_service.delete_file(blob_name)
+        #storage_service.delete_file(blob_name)
         return
     except Exception as e:
         logger.error(f"Failed to delete image {blob_name}: {e}")
@@ -195,7 +159,7 @@ def delete_audio_file(
         )
         
     try:
-        storage_service.delete_file(blob_name)
+        #storage_service.delete_file(blob_name)
         return
     except Exception as e:
         logger.error(f"Failed to delete audio {blob_name}: {e}")

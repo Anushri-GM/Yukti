@@ -1,30 +1,36 @@
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import Optional, List
-from uuid import UUID
 import uuid
+from uuid import UUID
+
 from models.suggestion import SuggestionStatus, VerificationStatus
 
+
 class SuggestionImageResponse(BaseModel):
-    id: UUID
-    suggestion_id: UUID
+    id: uuid.UUID
+    suggestion_id: uuid.UUID
     image_url: str
     created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        from_attributes = True
+
 
 class StatusHistoryResponse(BaseModel):
-    id: UUID
-    suggestion_id: UUID
+    id: uuid.UUID
+    suggestion_id: uuid.UUID
     status: str
     remarks: Optional[str] = None
-    changed_by: UUID
+    changed_by: int
     created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        from_attributes = True
+
 
 class SuggestionResponse(BaseModel):
-    id: UUID
+    id: uuid.UUID
     citizen_id: UUID
     title: str
     description: str
@@ -39,19 +45,21 @@ class SuggestionResponse(BaseModel):
     verification_status: str
     created_at: datetime
     updated_at: datetime
-    
+
     # Future AI Fields
     ai_summary: Optional[str] = None
     ai_category: Optional[str] = None
     priority_score: Optional[float] = None
     confidence_score: Optional[float] = None
-    duplicate_group_id: Optional[UUID] = None
-    
-    # Relationships
-    images: List[SuggestionImageResponse] = []
-    status_history: List[StatusHistoryResponse] = []
+    duplicate_group_id: Optional[uuid.UUID] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    # Relationships
+    images: List[SuggestionImageResponse] = Field(default_factory=list)
+    status_history: List[StatusHistoryResponse] = Field(default_factory=list)
+
+    class Config:
+        from_attributes = True
+
 
 class SuggestionCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=100, description="Title of the suggestion, max 100 characters")
@@ -62,7 +70,10 @@ class SuggestionCreate(BaseModel):
     latitude: Optional[float] = Field(None, ge=-90.0, le=90.0, description="Latitude must be between -90 and 90")
     longitude: Optional[float] = Field(None, ge=-180.0, le=180.0, description="Longitude must be between -180 and 180")
     address: Optional[str] = None
-    images: Optional[List[str]] = Field(default=[], description="List of image URLs associated with the suggestion")
+    images: List[str] = Field(
+        default_factory=list,
+        description="List of image URLs associated with the suggestion"
+    )
 
     @field_validator("title")
     @classmethod
@@ -89,6 +100,7 @@ class SuggestionCreate(BaseModel):
         if not v_stripped:
             raise ValueError("Category is required and cannot be empty or whitespace")
         return v_stripped
+
 
 class SuggestionUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=100)
@@ -133,11 +145,13 @@ class SuggestionUpdate(BaseModel):
             raise ValueError("Category must not be empty or whitespace")
         return v_stripped
 
+
 class SuggestionListResponse(BaseModel):
     suggestions: List[SuggestionResponse]
     total: int
     page: int
     limit: int
+
 
 class StatusUpdateRequest(BaseModel):
     status: str = Field(..., description="The new status to apply")
@@ -148,5 +162,7 @@ class StatusUpdateRequest(BaseModel):
     def validate_status(cls, v: str) -> str:
         valid_statuses = [status.value for status in SuggestionStatus]
         if v not in valid_statuses:
-            raise ValueError(f"Invalid status value. Must be one of: {', '.join(valid_statuses)}")
+            raise ValueError(
+                f"Invalid status value. Must be one of: {', '.join(valid_statuses)}"
+            )
         return v

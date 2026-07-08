@@ -98,4 +98,4 @@ class StorageService:
         blob = bucket.blob(blob_name)
         return blob.download_as_bytes()
 
-storage_service = StorageService()
+#storage_service = StorageService()
