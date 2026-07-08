@@ -1,84 +1,68 @@
 import os
+import math
 from typing import Tuple
-from google.cloud import speech
-from google.oauth2 import service_account
 from core.config import settings
 from core.logging import logger
 
 class SpeechService:
     def __init__(self):
-        self.credentials_path = settings.GOOGLE_APPLICATION_CREDENTIALS
-        logger.info("Initializing SpeechService...")
-        
-        if self.credentials_path and os.path.exists(self.credentials_path):
-            # Ensure the env var is set for standard client initializations
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.abspath(self.credentials_path)
-            self.credentials = service_account.Credentials.from_service_account_file(self.credentials_path)
-            self.client = speech.SpeechClient(credentials=self.credentials)
-        else:
-            self.client = speech.SpeechClient()
+        logger.info("Initializing SpeechService with local Faster-Whisper model...")
+        try:
+            from faster_whisper import WhisperModel
+            # Load the 'base' model on CPU using int8 quantization to prevent high memory usage
+            self.model = WhisperModel("base", device="cpu", compute_type="int8")
+            self.available = True
+            logger.info("Faster-Whisper base model loaded successfully.")
+        except Exception as e:
+            logger.error(f"Failed to initialize Faster-Whisper model: {e}")
+            self.model = None
+            self.available = False
 
-    def transcribe_audio(self, audio_content: bytes, mime_type: str) -> Tuple[str, float]:
+    def transcribe_audio(self, file_path: str) -> Tuple[str, float]:
         """
-        Transcribes audio content to text and returns a tuple of (transcript_string, confidence_score).
-        Gracefully handles empty audio, timeout, and API failures.
+        Transcribes the audio file at file_path to text using Faster-Whisper.
+        Returns a tuple of (transcript_string, confidence_score).
         """
-        if not audio_content:
-            logger.warning("Attempted to transcribe empty audio content.")
+        if not self.available or not self.model:
+            logger.warning("Whisper model is unavailable. Returning fallback empty transcription.")
             return "", 0.0
 
-        encoding = speech.RecognitionConfig.AudioEncoding.ENCODING_UNSPECIFIED
-        sample_rate_hertz = None
-        
-        # Simple heuristics for common encodings
-        mime_lower = mime_type.lower()
-        if "wav" in mime_lower:
-            encoding = speech.RecognitionConfig.AudioEncoding.LINEAR16
-            # WAV linear16 PCM usually requires sample rate, but Speech-to-Text can auto-detect 
-            # if we leave it unspecified or use ENCODING_UNSPECIFIED if it fails.
-            # Let's fallback to ENCODING_UNSPECIFIED if we aren't sure of sample rate, to be safe.
-            encoding = speech.RecognitionConfig.AudioEncoding.ENCODING_UNSPECIFIED
-        elif "mpeg" in mime_lower or "mp3" in mime_lower:
-            encoding = speech.RecognitionConfig.AudioEncoding.MP3
-        
-        config = speech.RecognitionConfig(
-            encoding=encoding,
-            language_code="en-IN",
-            alternative_language_codes=["hi-IN", "en-US"],
-            enable_automatic_punctuation=True
-        )
-        
-        audio = speech.RecognitionAudio(content=audio_content)
-        
+        if not file_path or not os.path.exists(file_path):
+            logger.warning(f"Audio file path is empty or missing: {file_path}")
+            return "", 0.0
+
+        if os.path.getsize(file_path) == 0:
+            logger.warning(f"Audio file is empty (0 bytes): {file_path}")
+            return "", 0.0
+
+        logger.info(f"Transcription started for: {file_path}")
         try:
-            logger.info("Sending recognize request to Google Speech-to-Text API...")
-            # Enforce 15-second timeout on synchronous recognition call
-            response = self.client.recognize(config=config, audio=audio, timeout=15.0)
+            segments, info = self.model.transcribe(file_path, beam_size=5)
             
             transcript_parts = []
-            confidence_scores = []
+            confidence_sum = 0.0
+            count = 0
             
-            for result in response.results:
-                if result.alternatives:
-                    best_alt = result.alternatives[0]
-                    transcript_parts.append(best_alt.transcript)
-                    confidence_scores.append(best_alt.confidence)
-            
+            # Consume generator to run transcription
+            for segment in segments:
+                transcript_parts.append(segment.text)
+                # Convert log probability to confidence score
+                prob = math.exp(segment.avg_logprob) if hasattr(segment, 'avg_logprob') else 0.9
+                prob = max(0.0, min(1.0, prob))
+                confidence_sum += prob
+                count += 1
+                
             transcript = " ".join(transcript_parts).strip()
-            confidence = sum(confidence_scores) / len(confidence_scores) if confidence_scores else 0.0
+            confidence = confidence_sum / count if count > 0 else 1.0
             
-            logger.info(f"Speech transcription success. Confidence: {confidence:.2f}")
+            logger.info(f"Transcription completed successfully. Text length: {len(transcript)}. Confidence: {confidence:.2f}")
             return transcript, confidence
             
         except Exception as e:
-            logger.error(f"Speech-to-Text transaction failed: {e}")
-            # Gracefully fallback to empty transcript and 0.0 confidence per instructions
+            logger.error(f"Faster-Whisper transcription failed: {e}")
             return "", 0.0
 
     def detect_language(self, audio_content: bytes) -> str:
-        """
-        Stub to return default dialect.
-        """
         return "en-IN"
 
 speech_service = SpeechService()

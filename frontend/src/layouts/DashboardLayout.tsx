@@ -18,14 +18,27 @@ export const DashboardLayout: React.FC<LayoutProps> = ({ children, activeView, o
   const { theme, toggleTheme } = useThemeStore();
   const { notifications, removeNotification } = useNotificationStore();
 
-  const navigationItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, view: 'dashboard' },
-    { name: 'Citizen Portal', icon: Sparkles, view: 'citizen' },
-    { name: 'Officer Portal', icon: UserCheck, view: 'officer' },
-    { name: 'MP Analytics', icon: AlertCircle, view: 'mp' },
-    { name: 'Settings', icon: Settings, view: 'settings' },
-    { name: 'Help', icon: HelpCircle, view: 'help' }
-  ];
+  const getNavigationItems = () => {
+    const items = [
+      { name: 'Dashboard', icon: LayoutDashboard, view: 'home' }
+    ];
+
+    if (user?.role === 'Citizen') {
+      items.push({ name: 'Citizen Portal', icon: Sparkles, view: 'citizen' });
+    } else if (user?.role === 'Officer') {
+      items.push({ name: 'Officer Portal', icon: UserCheck, view: 'officer' });
+    } else if (user?.role === 'MP') {
+      items.push({ name: 'MP Analytics', icon: AlertCircle, view: 'mp' });
+    }
+
+    items.push(
+      { name: 'Settings', icon: Settings, view: 'settings' },
+      { name: 'Help', icon: HelpCircle, view: 'help' }
+    );
+    return items;
+  };
+
+  const navigationItems = getNavigationItems();
 
   return (
     <div className="min-h-screen flex bg-gov-slate-50 dark:bg-gov-slate-950 transition-colors duration-200">

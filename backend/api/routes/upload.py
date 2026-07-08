@@ -81,58 +81,72 @@ async def upload_image_file(
     "/audio",
     status_code=status.HTTP_201_CREATED,
     summary="Upload audio file and transcribe",
-    description="Uploads an audio file to GCS and immediately transcribes it using Google Cloud Speech-to-Text. Supported formats: WAV, MP3, M4A. Max size: 10MB.",
+    description="Transcribes uploaded audio locally using Faster-Whisper. Supported formats: WAV, MP3, M4A. Max size: 10MB.",
 )
 async def upload_audio_file(
     file: UploadFile = File(...),
     current_user: User = citizen_dependency
 ):
-    logger.info(f"User {current_user.id} initiated audio upload for filename: {file.filename}")
+    logger.info(f"Audio received from user {current_user.id}: {file.filename}")
     
     content = await file.read()
     file_size = len(content)
     
+    # 1. Validate size
+    validate_file_size(file_size, settings.MAX_AUDIO_SIZE)
+    
+    # 2. Validate audio types
+    validate_audio_type(file.content_type, file.filename)
+    
+    # 3. Sanitize filename
+    clean_name = sanitize_filename(file.filename)
+    
+    # 4. Malware scanning stub
+    scan_for_malware(content)
+    
+    # Create a temporary local file
+    import tempfile
+    import time
+    
+    _, ext = os.path.splitext(clean_name)
+    if not ext:
+        ext = ".wav"
+        
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
+    temp_file_path = temp_file.name
+    logger.info(f"Temporary file created: {temp_file_path}")
+    
     try:
-        # 1. Validate size
-        validate_file_size(file_size, settings.MAX_AUDIO_SIZE)
+        temp_file.write(content)
+        temp_file.close()
         
-        # 2. Validate audio types
-        validate_audio_type(file.content_type, file.filename)
+        start_time = time.time()
+        logger.info("Local transcription started")
         
-        # 3. Sanitize filename
-        clean_name = sanitize_filename(file.filename)
+        transcript, confidence = speech_service.transcribe_audio(temp_file_path)
         
-        # 4. Generate unique filename path
-        blob_name = generate_unique_filename(clean_name, "voice")
+        duration = time.time() - start_time
+        logger.info(f"Transcription completed in {duration:.2f}s")
         
-        # 5. Malware scanning stub
-        scan_for_malware(content)
-        
-        # 6. Upload file content to Google Cloud Storage
-        storage_service.upload_audio(content, blob_name, file.content_type)
-        
-        # 7. Generate a signed URL for GCS download
-        signed_url = storage_service.generate_signed_url(blob_name)
-        
-        # 8. Call Google Speech-to-Text immediately
-        transcript, confidence = speech_service.transcribe_audio(content, file.content_type)
-        
-        logger.info(f"Audio uploaded and transcribed. Blob: {blob_name}, Transcript length: {len(transcript)}")
         return {
-            "audio_url": signed_url,
             "transcript": transcript,
             "confidence": confidence
         }
         
-    except HTTPException:
-        logger.warning(f"Audio upload failed with HTTPException for user {current_user.id}")
-        raise
     except Exception as e:
-        logger.error(f"Failed to process audio due to speech or storage error: {e}")
+        logger.error(f"Failed to process audio transcription: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to upload or transcribe audio file."
+            detail="Failed to transcribe audio file locally."
         )
+    finally:
+        # Cleanup: Always remove the temporary file
+        if os.path.exists(temp_file_path):
+            try:
+                os.remove(temp_file_path)
+                logger.info(f"Temporary file deleted: {temp_file_path}")
+            except Exception as cleanup_err:
+                logger.error(f"Error removing temporary file {temp_file_path}: {cleanup_err}")
 
 @router.delete(
     "/image/{blob_name:path}",

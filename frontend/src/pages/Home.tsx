@@ -1,11 +1,14 @@
 import React from 'react';
 import { Sparkles, Users, ShieldAlert, ArrowRight } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
 
 interface HomeProps {
   onNavigate: (view: string) => void;
 }
 
 export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
+  const { user } = useAuthStore();
+
   return (
     <div className="max-w-6xl mx-auto space-y-8 py-4">
       {/* Hero Welcome banner */}
@@ -25,63 +28,71 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
       </div>
 
       {/* Quick Action Navigation Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 gap-6 ${
+        !user ? 'md:grid-cols-3' : 'md:grid-cols-1 max-w-md mx-auto'
+      }`}>
         {/* Citizen Card */}
-        <div className="gov-card flex flex-col justify-between hover:scale-[1.01] transition-transform">
-          <div className="space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-gov-brand-blue-50 dark:bg-gov-brand-blue-900/20 text-gov-brand-blue-500 flex items-center justify-center">
-              <Users className="h-6 w-6" />
+        {(!user || user.role === 'Citizen') && (
+          <div className="gov-card flex flex-col justify-between hover:scale-[1.01] transition-transform">
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-gov-brand-blue-50 dark:bg-gov-brand-blue-900/20 text-gov-brand-blue-500 flex items-center justify-center">
+                <Users className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold">Citizen Portal</h3>
+              <p className="text-slate-550 dark:text-slate-400 text-sm leading-relaxed">
+                Report public infrastructure issues, supply leaks, and educational needs directly to constituency representatives.
+              </p>
             </div>
-            <h3 className="text-xl font-bold">Citizen Portal</h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
-              Report public infrastructure issues, supply leaks, and educational needs directly to constituency representatives.
-            </p>
+            <button 
+              onClick={() => onNavigate('citizen')}
+              className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 border border-gov-brand-blue-500/30 text-gov-brand-blue-500 rounded-lg font-semibold hover:bg-gov-brand-blue-50 transition-colors"
+            >
+              Enter Citizen Portal <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
-          <button 
-            onClick={() => onNavigate('citizen')}
-            className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 border border-gov-brand-blue-500/30 text-gov-brand-blue-500 rounded-lg font-semibold hover:bg-gov-brand-blue-50 transition-colors"
-          >
-            Enter Citizen Portal <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
+        )}
 
         {/* Officer Card */}
-        <div className="gov-card flex flex-col justify-between hover:scale-[1.01] transition-transform">
-          <div className="space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-gov-brand-emerald-50 dark:bg-gov-brand-emerald-900/20 text-gov-brand-emerald-500 flex items-center justify-center">
-              <ShieldAlert className="h-6 w-6" />
+        {(!user || user.role === 'Officer') && (
+          <div className="gov-card flex flex-col justify-between hover:scale-[1.01] transition-transform">
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-gov-brand-emerald-50 dark:bg-gov-brand-emerald-900/20 text-gov-brand-emerald-500 flex items-center justify-center">
+                <ShieldAlert className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold">Officer Panel</h3>
+              <p className="text-slate-550 dark:text-slate-400 text-sm leading-relaxed">
+                Review and audit AI-categorized complaints, verify localized claims, and register them as official proposed projects.
+              </p>
             </div>
-            <h3 className="text-xl font-bold">Officer Panel</h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
-              Review and audit AI-categorized complaints, verify localized claims, and register them as official proposed projects.
-            </p>
+            <button 
+              onClick={() => onNavigate('officer')}
+              className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 border border-gov-brand-emerald-500/30 text-gov-brand-emerald-500 rounded-lg font-semibold hover:bg-gov-brand-emerald-50 transition-colors"
+            >
+              Enter Officer Panel <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
-          <button 
-            onClick={() => onNavigate('officer')}
-            className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 border border-gov-brand-emerald-500/30 text-gov-brand-emerald-500 rounded-lg font-semibold hover:bg-gov-brand-emerald-50 transition-colors"
-          >
-            Enter Officer Panel <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
+        )}
 
         {/* MP Dashboard Card */}
-        <div className="gov-card flex flex-col justify-between hover:scale-[1.01] transition-transform">
-          <div className="space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/10 text-amber-500 flex items-center justify-center">
-              <Sparkles className="h-6 w-6" />
+        {(!user || user.role === 'MP') && (
+          <div className="gov-card flex flex-col justify-between hover:scale-[1.01] transition-transform">
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/10 text-amber-500 flex items-center justify-center">
+                <Sparkles className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold">MP Analytics</h3>
+              <p className="text-slate-550 dark:text-slate-400 text-sm leading-relaxed">
+                Access the executive decision dashboard, run "What-If" planning optimizations, and review budget allocation summaries.
+              </p>
             </div>
-            <h3 className="text-xl font-bold">MP Analytics</h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
-              Access the executive decision dashboard, run "What-If" planning optimizations, and review budget allocation summaries.
-            </p>
+            <button 
+              onClick={() => onNavigate('mp')}
+              className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 border border-amber-500/30 text-amber-500 rounded-lg font-semibold hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors"
+            >
+              Enter MP Analytics <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
-          <button 
-            onClick={() => onNavigate('mp')}
-            className="mt-6 flex items-center justify-center gap-2 w-full py-2.5 border border-amber-500/30 text-amber-500 rounded-lg font-semibold hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors"
-          >
-            Enter MP Analytics <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );

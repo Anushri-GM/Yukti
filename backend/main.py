@@ -41,6 +41,18 @@ def startup_event():
         except Exception as e:
             logger.error(f"Failed to install google-genai programmatically: {e}")
 
+    # Programmatic check and install of faster-whisper
+    try:
+        from faster_whisper import WhisperModel
+        logger.info("faster-whisper package is already installed.")
+    except ImportError:
+        logger.info("faster-whisper package not found. Installing via pip...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "faster-whisper"])
+            logger.info("faster-whisper package installed successfully.")
+        except Exception as e:
+            logger.error(f"Failed to install faster-whisper programmatically: {e}")
+
     # Auto-create all tables in PostgreSQL
     from database.session import engine, Base
     from models.user import User

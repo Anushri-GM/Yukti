@@ -51,6 +51,23 @@ function App() {
     );
   }
 
+  const handleUnauthorizedRedirect = () => {
+    const user = useAuthStore.getState().user;
+    if (user?.role === 'Citizen') setCurrentView('citizen');
+    else if (user?.role === 'Officer') setCurrentView('officer');
+    else if (user?.role === 'MP') setCurrentView('mp');
+    else setCurrentView('home');
+  };
+
+  // Sync currentView based on auth status and user role
+  useEffect(() => {
+    if (isAuthenticated) {
+      handleUnauthorizedRedirect();
+    } else {
+      setCurrentView('home');
+    }
+  }, [isAuthenticated]);
+
   // Helper route switch handler
   const renderViewContent = () => {
     switch (currentView) {
@@ -58,19 +75,19 @@ function App() {
         return <Home onNavigate={setCurrentView} />;
       case 'citizen':
         return (
-          <ProtectedRoute allowedRoles={['Citizen']} onNavigateHome={() => setCurrentView('home')}>
+          <ProtectedRoute allowedRoles={['Citizen']} onNavigateHome={handleUnauthorizedRedirect}>
             <CitizenPortal />
           </ProtectedRoute>
         );
       case 'officer':
         return (
-          <ProtectedRoute allowedRoles={['Officer']} onNavigateHome={() => setCurrentView('home')}>
+          <ProtectedRoute allowedRoles={['Officer']} onNavigateHome={handleUnauthorizedRedirect}>
             <OfficerDashboard />
           </ProtectedRoute>
         );
       case 'mp':
         return (
-          <ProtectedRoute allowedRoles={['MP']} onNavigateHome={() => setCurrentView('home')}>
+          <ProtectedRoute allowedRoles={['MP']} onNavigateHome={handleUnauthorizedRedirect}>
             <MpDashboard />
           </ProtectedRoute>
         );

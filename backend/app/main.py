@@ -55,6 +55,12 @@ async def submit_grievance(
     # Analyze with Gemini
     analysis = gemini.analyze_citizen_submission(text or "", image_bytes)
     
+    # Extract location and geocode using OSM Nominatim
+    from app.core import geocoder
+    if not latitude or not longitude:
+        extracted_loc = analysis.get("affected_infrastructure", "")
+        latitude, longitude = geocoder.geocode_location(extracted_loc, text or "")
+        
     # Save submission
     db_submission = models.Suggestion(
         title="Citizen Grievance",

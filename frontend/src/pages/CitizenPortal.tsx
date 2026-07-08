@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
+import apiClient from '../services/api';
 import { 
   Landmark, FileText, CheckCircle2, AlertCircle, 
   MapPin, Image as ImageIcon, Mic, Loader2, RefreshCw,
@@ -55,17 +56,59 @@ export const CitizenPortal: React.FC = () => {
     }
   };
 
-  const simulateVoiceRecording = () => {
+  const mediaRecorderRef = React.useRef<MediaRecorder | null>(null);
+  const audioChunksRef = React.useRef<Blob[]>([]);
+
+  const simulateVoiceRecording = async () => {
     if (isRecording) {
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+      }
       setIsRecording(false);
-      // Simulate completed recording & transcription
-      setIsTranscribing(true);
-      setTimeout(() => {
-        setIsTranscribing(false);
-        setText(prev => (prev ? prev + "\n" : "") + "URGENT: Drinking water supply pipeline is broken near Sector 2 main crossing, causing severe wastage and mud flood.");
-      }, 1500);
     } else {
-      setIsRecording(true);
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+          setIsTranscribing(true);
+          try {
+            const formData = new FormData();
+            formData.append('file', audioBlob, 'recording.wav');
+            
+            const response = await apiClient.post('/api/upload/audio', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            });
+            
+            if (response.data && response.data.transcript) {
+              setText(prev => (prev ? prev + "\n" : "") + response.data.transcript);
+            }
+          } catch (err) {
+            console.error('Error uploading/transcribing audio:', err);
+            alert('Failed to transcribe recorded audio.');
+          } finally {
+            setIsTranscribing(false);
+          }
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        mediaRecorder.start();
+        setIsRecording(true);
+      } catch (err) {
+        console.error('Error accessing microphone:', err);
+        alert('Could not access microphone. Please check permission settings.');
+      }
     }
   };
 
@@ -131,7 +174,59 @@ export const CitizenPortal: React.FC = () => {
               />
             </div>
 
-            {/* Multimedia controls temporarily disabled for hackathon */}
+            {/* Image Attachments Planned Feature Card */}
+            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-250 dark:border-slate-800 rounded-xl p-4 mb-4 space-y-2 text-xs relative overflow-hidden shadow-sm">
+              <div className="flex justify-between items-center">
+                <span className="flex items-center gap-1.5 font-bold text-gov-brand-blue-500 dark:text-gov-brand-blue-300 uppercase tracking-wider text-[10px]">
+                  <ImageIcon className="h-4 w-4" /> Image Attachments
+                </span>
+                <span className="px-1.5 py-0.5 rounded bg-gov-brand-blue-500/10 text-gov-brand-blue-500 font-extrabold text-[8px] tracking-wider uppercase">
+                  Coming Soon
+                </span>
+              </div>
+              <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
+                Image upload will be available in a future release. The current hackathon build supports:
+              </p>
+              <ul className="list-disc pl-4 text-slate-500 dark:text-slate-400 space-y-1 font-semibold">
+                <li>Text grievance submission</li>
+                <li>Voice grievance submission with local AI transcription</li>
+                <li>AI-powered category, priority, and department analysis</li>
+                <li>Interactive constituency GIS mapping</li>
+              </ul>
+            </div>
+
+            {/* Multimedia controls - Audio Only */}
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={simulateVoiceRecording}
+                disabled={isTranscribing}
+                className={`w-full flex flex-col items-center justify-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg p-3 text-slate-500 transition-colors h-20 ${
+                  isRecording 
+                    ? 'bg-rose-50 border-rose-300 text-rose-600 animate-pulse'
+                    : isTranscribing
+                    ? 'bg-amber-50 border-amber-300 text-amber-600'
+                    : 'hover:bg-slate-50 dark:hover:bg-slate-950/20 hover:text-gov-brand-blue-500'
+                }`}
+              >
+                {isTranscribing ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin mb-1" />
+                    <span className="text-[10px] font-bold">Transcribing...</span>
+                  </>
+                ) : isRecording ? (
+                  <>
+                    <Mic className="h-5 w-5 mb-1" />
+                    <span className="text-[10px] font-bold">Stop Rec</span>
+                  </>
+                ) : (
+                  <>
+                    <Mic className="h-5 w-5 mb-1" />
+                    <span className="text-[10px] font-bold">Record Voice</span>
+                  </>
+                )}
+              </button>
+            </div>
 
             <button
               type="submit"
