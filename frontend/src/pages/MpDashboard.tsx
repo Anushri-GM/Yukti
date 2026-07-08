@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useStore, CitizenSubmission } from '../store/useStore';
 import apiClient from '../services/api';
 import {
-  BarChart3, RefreshCw, FileText, CheckSquare,
-  Wallet, AlertCircle, ArrowRight,
+  RefreshCw, FileText, CheckSquare,
+  AlertCircle, ArrowRight,
   MapPin, Calendar, Filter,
   Loader2, X, Download, ShieldAlert, Award, Send, Clock,
   TrendingUp, Flame, ChevronDown, ChevronUp, Layers

@@ -5,8 +5,8 @@ import apiClient from '../services/api';
 import {
   Landmark, FileText, CheckCircle2, AlertCircle,
   MapPin, Image as ImageIcon, Mic, Loader2, RefreshCw,
-  Clock, ShieldAlert, TrendingUp, Award, Send, CheckSquare,
-  Activity, ArrowRight, BarChart3
+  Clock, ShieldAlert, Send, CheckSquare,
+  Activity, ArrowRight
 } from 'lucide-react';
 
 const URGENCY_LABEL: Record<number, string> = { 5: 'Very High', 4: 'High', 3: 'Medium', 2: 'Low', 1: 'Low' };
@@ -111,20 +111,6 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({ initialSubView = '
       setTimeout(() => { setSuccess(false); changeView('history'); }, 2000);
     }
   };
-
-  // ── Sub-nav ─────────────────────────────────────────────────────────────────
-  const NavBtn = ({ v, label, icon }: { v: ActiveView; label: string; icon: React.ReactNode }) => (
-    <button
-      onClick={() => setView(v)}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-        view === v
-          ? 'bg-gov-brand-blue-500 text-white shadow-sm'
-          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-      }`}
-    >
-      {icon} {label}
-    </button>
-  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 py-4">

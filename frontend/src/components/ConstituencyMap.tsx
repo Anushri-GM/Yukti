@@ -5,8 +5,8 @@ import { CitizenSubmission } from '../store/useStore';
 import 'leaflet/dist/leaflet.css';
 
 // Monkey-patch Leaflet container initialization to prevent StrictMode double-mounting crash
-const originalInit = L.Map.prototype._initContainer;
-L.Map.prototype._initContainer = function (id) {
+const originalInit = (L.Map.prototype as any)._initContainer;
+(L.Map.prototype as any)._initContainer = function (id: string) {
   const container = L.DomUtil.get(id);
   if (container && (container as any)._leaflet_id) {
     delete (container as any)._leaflet_id;
@@ -274,7 +274,6 @@ export const ConstituencyMap: React.FC<ConstituencyMapProps> = ({
         if (!sub.latitude || !sub.longitude) return null;
         const isSelected = sub.id === selectedMarkerId;
         const priorityText  = getPriorityText(sub.urgency);
-        const priorityBadge = getPriorityBadge(sub.urgency);
 
         return (
           <Marker
