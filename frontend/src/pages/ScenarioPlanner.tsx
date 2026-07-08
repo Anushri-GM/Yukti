@@ -4,7 +4,7 @@ import { Sliders, Sparkles, AlertCircle, BarChart2, CheckCircle2, XCircle } from
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export const ScenarioPlanner: React.FC = () => {
-  const { runSimulation, simulationResult, isSimulating, projects } = useStore();
+  const { runSimulation, simulationResult, isSimulating, projects, simulatedBudget } = useStore();
 
   const [budget, setBudget] = useState<number>(10000000); // Default 1 Crore
   const [focus, setFocus] = useState<string>('');
@@ -49,7 +49,7 @@ export const ScenarioPlanner: React.FC = () => {
 
   const chartData = [
     { name: 'Spent Budget', amount: spentBudget / 100000 },
-    { name: 'Remaining Budget', amount: Math.max(0, budget - spentBudget) / 100000 }
+    { name: 'Remaining Budget', amount: Math.max(0, (simulatedBudget || budget) - spentBudget) / 100000 }
   ];
 
   return (
@@ -83,15 +83,15 @@ export const ScenarioPlanner: React.FC = () => {
             <input 
               type="range"
               min="2000000"
-              max="25000000"
-              step="500000"
+              max="100000000"
+              step="1000000"
               value={budget}
               onChange={(e) => setBudget(Number(e.target.value))}
               className="w-full accent-gov-brand-blue-500"
             />
             <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500">
               <span>₹20 Lakhs</span>
-              <span>₹2.5 Crores</span>
+              <span>₹10 Crores</span>
             </div>
           </div>
 
@@ -256,7 +256,7 @@ export const ScenarioPlanner: React.FC = () => {
                 <h5 className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Budget Utilization</h5>
                 <div className="mt-3 space-y-0.5">
                   <div className="text-xl font-black text-emerald-500">₹{(spentBudget / 10000000).toFixed(2)} Cr</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-455">Allocated out of ₹{(budget / 10000000).toFixed(2)} Cr</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-455">Allocated out of ₹{((simulatedBudget || budget) / 10000000).toFixed(2)} Cr</div>
                 </div>
               </div>
               <div className="h-24 w-full mt-3">

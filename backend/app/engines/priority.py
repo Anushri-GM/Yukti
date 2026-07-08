@@ -74,14 +74,7 @@ def run_knapsack_optimization(
     Runs OR-Tools Mixed Integer Programming (MIP) solver to select projects
     maximizing total priority score within the budget limit.
     """
-    # Create the MIP solver with the SCIP backend
-    solver = pywraplp.Solver.CreateSolver("SCIP")
-    if not solver:
-        # Fallback to GLOP if SCIP is not available (though SCIP is standard with OR-tools)
-        solver = pywraplp.Solver.CreateSolver("GLOP")
-        
     n_projects = len(projects)
-    x = {}
     calculated_scores = []
     justifications = []
     
@@ -104,40 +97,30 @@ def run_knapsack_optimization(
         calculated_scores.append(score)
         justifications.append(justification)
         
-        # Define binary variable for project selection (0 or 1)
-        x[i] = solver.IntVar(0, 1, f"x_{i}")
-        
-    # Budget Constraint: sum(x[i] * cost[i]) <= budget
-    budget_constraint = solver.RowConstraint(0, budget, "budget")
-    for i, project in enumerate(projects):
-        budget_constraint.SetCoefficient(x[i], project["cost"])
-        
-    # Objective: Maximize sum(x[i] * priority_score[i])
-    objective = solver.Objective()
-    for i in range(n_projects):
-        objective.SetCoefficient(x[i], calculated_scores[i])
-    objective.SetMaximization()
-    
-    # Solve the problem
-    status = solver.Solve()
-    
+    total_score = sum(calculated_scores)
     optimized_projects = []
     total_cost = 0.0
     total_impact = 0.0
     
     for i, project in enumerate(projects):
-        is_selected = False
-        if status == pywraplp.Solver.OPTIMAL or status == pywraplp.Solver.FEASIBLE:
-            is_selected = x[i].solution_value() > 0.5
-            
+        score = calculated_scores[i]
+        
+        # Proportional budget allocation
+        allocated_budget = (score / total_score * budget) if total_score > 0 else 0
+        
+        # We consider a project "selected" if it received a meaningful allocation
+        is_selected = allocated_budget > 0
+        
         proj_copy = dict(project)
-        proj_copy["priority_score"] = calculated_scores[i]
+        proj_copy["priority_score"] = score
         proj_copy["justification"] = justifications[i]
+        proj_copy["cost"] = round(allocated_budget, 2)
         proj_copy["is_selected"] = is_selected
+        
         optimized_projects.append(proj_copy)
         
         if is_selected:
-            total_cost += project["cost"]
-            total_impact += calculated_scores[i]
+            total_cost += proj_copy["cost"]
+            total_impact += score
             
     return total_cost, total_impact, optimized_projects

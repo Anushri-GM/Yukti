@@ -32,6 +32,11 @@ export const Register: React.FC<RegisterProps> = ({ onBack, onSuccess }) => {
       return;
     }
 
+    if (password.length < 7) {
+      setLocalError("Password must be at least 7 characters long");
+      return;
+    }
+
     if (!acceptTerms) {
       setLocalError("You must accept the terms of service");
       return;
