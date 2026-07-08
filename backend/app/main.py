@@ -38,7 +38,7 @@ from uuid import UUID
 
 # --- CITIZEN PORTAL ENDPOINTS ---
 
-@app.post(f"{settings.API_V1_STR}/citizens/submit", response_model=schemas.CitizenSubmissionOut)
+@app.post(f"{settings.API_V1_STR}/citizens/submit", response_model=schemas.CitizenSubmissionOut, status_code=status.HTTP_201_CREATED)
 async def submit_grievance(
     text: Optional[str] = Form(None),
     ward: Optional[str] = Form(None),
@@ -218,3 +218,4 @@ def simulate_scenario(req: schemas.SimulationRequest, db: Session = Depends(get_
         projects=optimized,
         explanation=explanation
     )
+

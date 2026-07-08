@@ -34,10 +34,7 @@ src/pages/MpDashboard.tsx(53,26): error TS6133: 'setSelectedStatus' is declared 
 src/pages/MpDashboard.tsx(54,21): error TS6133: 'setStartDate' is declared but its value is never read.
 src/pages/MpDashboard.tsx(55,19): error TS6133: 'setEndDate' is declared but its value is never read.
 src/pages/MpDashboard.tsx(86,9): error TS6133: 'getPriorityLevel' is declared but its value is never read.
-src/pages/MpDashboard.tsx(141,9): error TS6133: 'getMarkerIcon' is declared but its value is never read.
-src/pages/MpDashboard.tsx(388,18): error TS2552: Cannot find name 'Clock'. Did you mean 'Lock'?
-src/pages/MpDashboard.tsx(418,18): error TS2304: Cannot find name 'TrendingUp'.
-src/pages/MpDashboard.tsx(464,47): error TS6133: 'entry' is declared but its value is never read.
+src/pages/MpDashboard.tsx(447,47): error TS6133: 'entry' is declared but its value is never read.
 src/pages/OfficerDashboard.tsx(4,27): error TS6133: 'ListFilter' is declared but its value is never read.
 src/pages/OfficerDashboard.tsx(6,3): error TS6133: 'TrendingUp' is declared but its value is never read.
 src/pages/Profile.tsx(12,24): error TS6133: 'setProfileImage' is declared but its value is never read.

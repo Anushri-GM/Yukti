@@ -1,0 +1,2 @@
+Status: 201
+Body: {"id":"8f66b4fb-f49f-43d2-9972-86a56ae7dc8e","text":"Road pothole issue","voice_url":null,"image_url":null,"latitude":null,"longitude":null,"ward":"Ward C (Subhash Nagar)","category":"Other","urgency":3,"summary":"Road pothole issue","affected_infrastructure":"Ward C (Subhash Nagar)","confidence":0.5,"status":"pending","created_at":"2026-07-08T08:40:58.861712"}

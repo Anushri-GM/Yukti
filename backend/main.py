@@ -41,27 +41,24 @@ def startup_event():
         except Exception as e:
             logger.error(f"Failed to install google-genai programmatically: {e}")
 
-    # Temporary diagnostics run
-    try:
-        import os
-        frontend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
-        log_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "build_log.txt"))
-        logger.info(f"Running diagnostics npm run build in: {frontend_path}")
-        res = subprocess.run(["npm.cmd", "run", "build"], cwd=frontend_path, capture_output=True, text=True)
-        with open(log_path, "w") as f:
-            f.write("Exit Code: " + str(res.returncode) + "\n\n")
-            f.write("STDOUT:\n" + res.stdout + "\n\n")
-            f.write("STDERR:\n" + res.stderr + "\n")
-        logger.info("Diagnostics completed. Log written.")
-    except Exception as e:
-        logger.error(f"Failed to run diagnostics build: {e}")
-
     # Auto-create all tables in PostgreSQL
     from database.session import engine, Base
     from models.user import User
     from models.suggestion import Suggestion, SuggestionImage, SuggestionStatusHistory
     Base.metadata.create_all(bind=engine)
     logger.info("Database schemas verified and created successfully.")
+
+    # Verification run
+    try:
+        from fastapi.testclient import TestClient
+        client = TestClient(app)
+        res = client.post("/api/v1/citizens/submit", data={"text": "Verification run: road maintenance request", "ward": "Ward C (Subhash Nagar)"})
+        with open(r"c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\verification_log.txt", "w") as f:
+            f.write(f"Status: {res.status_code}\nBody: {res.text}\n")
+    except Exception as e:
+        import traceback
+        with open(r"c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\verification_log.txt", "w") as f:
+            f.write("ERROR:\n" + traceback.format_exc())
 
 # Include routes
 app.include_router(health.router)
@@ -74,5 +71,6 @@ app.include_router(ai.router)
 # Mount decision support sub-app
 from app.main import app as app_v1
 app.mount("/", app_v1)
+
 
 

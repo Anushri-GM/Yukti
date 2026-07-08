@@ -1,0 +1,2 @@
+Status: 201
+Body: {"id":"bd289ef3-8fb5-4c80-a1b9-86d9239945e8","text":"Verification run: road maintenance request","voice_url":null,"image_url":null,"latitude":null,"longitude":null,"ward":"Ward C (Subhash Nagar)","category":"Other","urgency":3,"summary":"Verification run: road maintenance request","affected_infrastructure":"Ward C (Subhash Nagar)","confidence":0.5,"status":"pending","created_at":"2026-07-08T08:43:12.105296"}

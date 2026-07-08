@@ -78,6 +78,16 @@ class Suggestion(Base):
     def confidence(self):
         return self.confidence_score or 1.0
 
+    @property
+    def ward(self):
+        return self.address
+
+    @property
+    def image_url(self):
+        if self.images:
+            return self.images[0].image_url
+        return None
+
 
 class SuggestionImage(Base):
     __tablename__ = "suggestion_images"

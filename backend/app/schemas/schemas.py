@@ -14,16 +14,16 @@ from uuid import UUID
 
 class CitizenSubmissionOut(BaseModel):
     id: UUID
-    text: Optional[str]
-    voice_url: Optional[str]
-    image_url: Optional[str]
-    latitude: Optional[float]
-    longitude: Optional[float]
-    ward: Optional[str]
-    category: Optional[str]
+    text: Optional[str] = None
+    voice_url: Optional[str] = None
+    image_url: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    ward: Optional[str] = None
+    category: Optional[str] = None
     urgency: int
-    summary: Optional[str]
-    affected_infrastructure: Optional[str]
+    summary: Optional[str] = None
+    affected_infrastructure: Optional[str] = None
     confidence: float
     status: str
     created_at: datetime

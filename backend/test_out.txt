@@ -1,0 +1,120 @@
+CRITICAL ERROR:
+Traceback (most recent call last):
+  File "C:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\backend\app\main.py", line 227, in <module>
+    res = client.post("/api/v1/citizens/submit", data={"text": "Road pothole issue", "ward": "Ward C (Subhash Nagar)"})
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\testclient.py", line 555, in post
+    return super().post(
+           ~~~~~~~~~~~~^
+        url,
+        ^^^^
+    ...<10 lines>...
+        extensions=extensions,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\httpx\_client.py", line 1144, in post
+    return self.request(
+           ~~~~~~~~~~~~^
+        "POST",
+        ^^^^^^^
+    ...<11 lines>...
+        extensions=extensions,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\testclient.py", line 454, in request
+    return super().request(
+           ~~~~~~~~~~~~~~~^
+        method,
+        ^^^^^^^
+    ...<11 lines>...
+        extensions=extensions,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\httpx\_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+        request,
+    ...<2 lines>...
+        history=[],
+    )
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+        request,
+        follow_redirects=follow_redirects,
+        history=history,
+    )
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\testclient.py", line 356, in handle_request
+    raise exc
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\testclient.py", line 353, in handle_request
+    portal.call(self.app, scope, receive, send)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\anyio\from_thread.py", line 338, in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\concurrent\futures\_base.py", line 450, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\concurrent\futures\_base.py", line 395, in __get_result
+    raise self._exception
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\anyio\from_thread.py", line 263, in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\fastapi\routing.py", line 2683, in app
+    await route.handle(scope, receive, send)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\fastapi\routing.py", line 1266, in handle
+    await super().handle(scope, receive, send)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\fastapi\routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\fastapi\routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\fastapi\routing.py", line 711, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "c:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\.venv\Lib\site-packages\fastapi\routing.py", line 316, in serialize_response
+    raise ResponseValidationError(
+    ...<3 lines>...
+    )
+fastapi.exceptions.ResponseValidationError: 2 validation errors:
+  {'type': 'missing', 'loc': ('response', 'image_url'), 'msg': 'Field required', 'input': <models.suggestion.Suggestion object at 0x00000248E5476900>}
+  {'type': 'missing', 'loc': ('response', 'ward'), 'msg': 'Field required', 'input': <models.suggestion.Suggestion object at 0x00000248E5476900>}
+
+  File "C:\Users\anush\OneDrive\Desktop\Projects\Yukti\Yukti\backend\app\main.py", line 41, in submit_grievance
+    POST /api/v1/citizens/submit
