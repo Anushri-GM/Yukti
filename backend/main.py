@@ -55,8 +55,7 @@ def startup_event():
 
     # Auto-create all tables in PostgreSQL
     from database.session import engine, Base
-    from models.user import User
-    from models.suggestion import Suggestion, SuggestionImage, SuggestionStatusHistory
+    import models as all_models
     Base.metadata.create_all(bind=engine)
     logger.info("Database schemas verified and created successfully.")
 

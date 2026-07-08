@@ -5,8 +5,8 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "app"))
 
-from app.db.session import SessionLocal
-from app.db import models
+from database.session import SessionLocal
+import models
 
 db = SessionLocal()
 try:

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from app.db.session import engine, Base, SessionLocal
+from database.session import engine, Base, SessionLocal
 from app.db.models import DemographicStats, DevelopmentProject
-from app.db.models import Suggestion
+from models import Suggestion
 
 def seed_db():
     Base.metadata.create_all(bind=engine)

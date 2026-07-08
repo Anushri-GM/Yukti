@@ -5,9 +5,9 @@ from typing import List, Optional
 import json
 
 from app.core.config import settings
-from app.db.session import engine, Base, get_db
+from database.session import engine, Base, get_db
 from app.db.seed import seed_db
-from app.db import models
+import models
 from app.schemas import schemas
 from app.engines import priority
 from app.core import gemini

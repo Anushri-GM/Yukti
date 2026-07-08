@@ -23,8 +23,7 @@ if config.config_file_name is not None:
 # Import our models and settings
 from core.config import settings
 from database.session import Base
-from models.user import User  # Must import models to register them on Base
-from models.suggestion import Suggestion, SuggestionImage, SuggestionStatusHistory
+import models  # Must import all models to register them on Base
 
 # set the sqlalchemy.url dynamically from settings
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
