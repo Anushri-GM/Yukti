@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Tex
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.session import Base
-from models.suggestion import Suggestion
 
 class DemographicStats(Base):
     __tablename__ = "demographic_stats"
