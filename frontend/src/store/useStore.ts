@@ -131,7 +131,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }
   },
 
-  submitGrievance: async (text, ward, imageFile) => {
+  submitGrievance: async (text: string, ward: string, imageFile: File | null) => {
     try {
       const formData = new FormData();
       if (text) formData.append('text', text);
@@ -154,7 +154,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }
   },
 
-  verifySubmission: async (id, status, category, urgency, convert) => {
+  verifySubmission: async (id: string, status: string, category: string, urgency: number, convert: boolean) => {
     try {
       const res = await apiClient.put(`/api/v1/officers/submissions/${id}/verify`, null, {
         params: {
@@ -173,7 +173,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }
   },
 
-  runSimulation: async (budget, weights, focus, multiplier) => {
+  runSimulation: async (budget: number, weights: SimulationWeights, focus: string, multiplier: number) => {
     set({ isSimulating: true });
     try {
       const res = await apiClient.post('/api/v1/mps/simulate', {

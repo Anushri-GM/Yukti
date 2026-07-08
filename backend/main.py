@@ -41,6 +41,21 @@ def startup_event():
         except Exception as e:
             logger.error(f"Failed to install google-genai programmatically: {e}")
 
+    # Temporary diagnostics run
+    try:
+        import os
+        frontend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
+        log_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "build_log.txt"))
+        logger.info(f"Running diagnostics npm run build in: {frontend_path}")
+        res = subprocess.run(["npm.cmd", "run", "build"], cwd=frontend_path, capture_output=True, text=True)
+        with open(log_path, "w") as f:
+            f.write("Exit Code: " + str(res.returncode) + "\n\n")
+            f.write("STDOUT:\n" + res.stdout + "\n\n")
+            f.write("STDERR:\n" + res.stderr + "\n")
+        logger.info("Diagnostics completed. Log written.")
+    except Exception as e:
+        logger.error(f"Failed to run diagnostics build: {e}")
+
     # Auto-create all tables in PostgreSQL
     from database.session import engine, Base
     from models.user import User

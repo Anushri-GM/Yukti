@@ -1,0 +1,51 @@
+Exit Code: 2
+
+STDOUT:
+
+> yukti-frontend@1.0.0 build
+> tsc && vite build
+
+src/App.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/layouts/DashboardLayout.tsx(6,3): error TS6133: 'Menu' is declared but its value is never read.
+src/pages/CitizenPortal.tsx(4,37): error TS6133: 'AlertCircle' is declared but its value is never read.
+src/pages/CitizenPortal.tsx(5,3): error TS6133: 'MapPin' is declared but its value is never read.
+src/pages/CitizenPortal.tsx(5,20): error TS6133: 'ImageIcon' is declared but its value is never read.
+src/pages/CitizenPortal.tsx(5,31): error TS6133: 'Mic' is declared but its value is never read.
+src/pages/CitizenPortal.tsx(19,10): error TS6133: 'imagePreview' is declared but its value is never read.
+src/pages/CitizenPortal.tsx(20,10): error TS6133: 'uploadProgress' is declared but its value is never read.
+src/pages/CitizenPortal.tsx(21,10): error TS6133: 'uploadingImage' is declared but its value is never read.
+src/pages/CitizenPortal.tsx(25,10): error TS6133: 'audioBlob' is declared but its value is never read.
+src/pages/CitizenPortal.tsx(25,21): error TS6133: 'setAudioBlob' is declared but its value is never read.
+src/pages/CitizenPortal.tsx(26,10): error TS6133: 'isTranscribing' is declared but its value is never read.
+src/pages/CitizenPortal.tsx(32,9): error TS6133: 'handleImageChange' is declared but its value is never read.
+src/pages/CitizenPortal.tsx(58,9): error TS6133: 'simulateVoiceRecording' is declared but its value is never read.
+src/pages/MpDashboard.tsx(5,14): error TS6133: 'RefreshCw' is declared but its value is never read.
+src/pages/MpDashboard.tsx(6,35): error TS6133: 'ShieldCheck' is declared but its value is never read.
+src/pages/MpDashboard.tsx(7,3): error TS6133: 'MapPin' is declared but its value is never read.
+src/pages/MpDashboard.tsx(7,11): error TS6133: 'Calendar' is declared but its value is never read.
+src/pages/MpDashboard.tsx(7,37): error TS6133: 'SortAsc' is declared but its value is never read.
+src/pages/MpDashboard.tsx(8,45): error TS6133: 'FileSpreadsheet' is declared but its value is never read.
+src/pages/MpDashboard.tsx(19,7): error TS6133: 'PRIORITY_LEVELS' is declared but its value is never read.
+src/pages/MpDashboard.tsx(20,7): error TS6133: 'DEPARTMENTS' is declared but its value is never read.
+src/pages/MpDashboard.tsx(43,11): error TS6133: 'projects' is declared but its value is never read.
+src/pages/MpDashboard.tsx(52,10): error TS6133: 'selectedDepartment' is declared but its value is never read.
+src/pages/MpDashboard.tsx(52,30): error TS6133: 'setSelectedDepartment' is declared but its value is never read.
+src/pages/MpDashboard.tsx(53,26): error TS6133: 'setSelectedStatus' is declared but its value is never read.
+src/pages/MpDashboard.tsx(54,21): error TS6133: 'setStartDate' is declared but its value is never read.
+src/pages/MpDashboard.tsx(55,19): error TS6133: 'setEndDate' is declared but its value is never read.
+src/pages/MpDashboard.tsx(86,9): error TS6133: 'getPriorityLevel' is declared but its value is never read.
+src/pages/MpDashboard.tsx(141,9): error TS6133: 'getMarkerIcon' is declared but its value is never read.
+src/pages/MpDashboard.tsx(388,18): error TS2552: Cannot find name 'Clock'. Did you mean 'Lock'?
+src/pages/MpDashboard.tsx(418,18): error TS2304: Cannot find name 'TrendingUp'.
+src/pages/MpDashboard.tsx(464,47): error TS6133: 'entry' is declared but its value is never read.
+src/pages/OfficerDashboard.tsx(4,27): error TS6133: 'ListFilter' is declared but its value is never read.
+src/pages/OfficerDashboard.tsx(6,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/pages/Profile.tsx(12,24): error TS6133: 'setProfileImage' is declared but its value is never read.
+src/pages/ScenarioPlanner.tsx(3,29): error TS6133: 'AlertCircle' is declared but its value is never read.
+src/pages/ScenarioPlanner.tsx(3,42): error TS6133: 'BarChart2' is declared but its value is never read.
+src/pages/ScenarioPlanner.tsx(4,39): error TS6133: 'CartesianGrid' is declared but its value is never read.
+src/services/api.ts(3,34): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+
+
+STDERR:
+

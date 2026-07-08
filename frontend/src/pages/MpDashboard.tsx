@@ -5,7 +5,7 @@ import {
   BarChart3, RefreshCw, FileText, CheckSquare, 
   Wallet, AlertCircle, Settings2, ShieldCheck, ArrowRight,
   MapPin, Calendar, Search, Filter, SortAsc, LayoutGrid, Map as MapIcon,
-  Loader2, X, Download, ShieldAlert, Award, FileSpreadsheet, Send
+  Loader2, X, Download, ShieldAlert, Award, FileSpreadsheet, Send, Clock
 } from 'lucide-react';
 import { 
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip as ChartTooltip, Legend,
@@ -137,24 +137,7 @@ export const MpDashboard: React.FC = () => {
     fetchAIDecisionSupport(sub);
   };
 
-  // Marker Colors
-  const getMarkerIcon = (priority: string) => {
-    let color = '#10B981'; // Green (Low)
-    if (priority === 'Very High') color = '#EF4444'; // Red
-    else if (priority === 'High') color = '#F97316'; // Orange
-    else if (priority === 'Medium') color = '#F59E0B'; // Yellow
-    
-    if (!window.google) return undefined;
-    return {
-      path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
-      fillColor: color,
-      fillOpacity: 1,
-      strokeColor: '#FFFFFF',
-      strokeWeight: 1.5,
-      scale: 1.5,
-      anchor: new window.google.maps.Point(12, 24)
-    };
-  };
+  // Leaflet marker styling is handled inside the ConstituencyMap component
 
   // Filter & Sort Logic
   const filteredSubmissions = useMemo(() => {
